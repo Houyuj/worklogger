@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Bash(python -m py_compile:*)",
+      "Bash(python3:*)",
+      "Bash(find:*)",
+      "Bash(python -m backend.migrations.add_project_year_range:*)",
+      "Bash(python -c:*)"
+    ]
+  }
+}

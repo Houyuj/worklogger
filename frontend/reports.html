@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Logger - Reports</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .user-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-tabs {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-tab {
+            padding: 15px 25px;
+            text-decoration: none;
+            color: #718096;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .nav-tab:hover {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .report-type-tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .report-type-tab {
+            flex: 1;
+            padding: 15px 30px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .report-type-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .report-type-tab:hover:not(.active) {
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+
+        .report-content {
+            display: none;
+        }
+
+        .report-content.active {
+            display: block;
+        }
+
+        .time-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        .time-label {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn-export {
+            background: #48bb78;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-export:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+        }
+
+        .btn-export.pdf {
+            background: #e53e3e;
+        }
+
+        .btn-export.pdf:hover {
+            background: #c53030;
+            box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
+        }
+
+        .report-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .goal-header {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .task-item {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .task-checkbox:hover {
+            transform: scale(1.1);
+        }
+
+        .task-checkbox.checked {
+            background: #48bb78;
+            color: white;
+        }
+
+        .task-checkbox.unchecked {
+            border: 2px solid #cbd5e0;
+        }
+
+        .task-title {
+            flex: 1;
+            color: #4a5568;
+        }
+
+        .task-title.completed {
+            text-decoration: line-through;
+            color: #a0aec0;
+        }
+
+        .task-date {
+            font-size: 0.85em;
+            color: #718096;
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .stat {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            transition: width 0.3s;
+        }
+
+        .weekly-goal-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #48bb78;
+        }
+
+        .monthly-goal-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-badge.completed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-badge.in-progress {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .status-badge.planned {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #a0aec0;
+            font-size: 1.1em;
+        }
+
+        .project-header {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #2d3748;
+            padding: 15px 20px;
+            background: #f7fafc;
+            border-left: 5px solid #f59e0b;
+            margin: 25px 0 15px 0;
+            border-radius: 8px;
+        }
+
+        .experiment-selection-item {
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e2e8f0;
+        }
+
+        .experiment-selection-item:hover {
+            background: #edf2f7;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        /* Task Action Menu Dropdown Styles */
+        .task-actions-menu {
+            position: relative;
+            display: inline-block;
+        }
+
+        .task-actions-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 180px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .task-actions-dropdown.show {
+            display: block;
+        }
+
+        .task-actions-dropdown button {
+            width: 100%;
+            padding: 10px 15px;
+            border: none;
+            background: white;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95em;
+            border-bottom: 1px solid #f7fafc;
+            transition: background 0.2s;
+        }
+
+        .task-actions-dropdown button:hover {
+            background: #f7fafc;
+        }
+
+        .task-actions-dropdown button.delete-option {
+            color: #e53e3e;
+            border-bottom: none;
+        }
+
+        .task-actions-dropdown button.delete-option:hover {
+            background: #fff5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📊 Work Logger</div>
+        <div class="user-menu">
+            <span>👤 User</span>
+            <span>⚙️</span>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <a href="dashboard.html" class="nav-tab">Today</a>
+        <a href="reports.html" class="nav-tab active">Reports</a>
+        <a href="gantt.html" class="nav-tab">Gantt</a>
+        <a href="experiments.html" class="nav-tab">Experiments</a>
+        <a href="index.html" class="nav-tab">← Back to Index</a>
+    </div>
+
+    <div class="container">
+        <!-- Report Type Tabs -->
+        <div class="report-type-tabs">
+            <div class="report-type-tab active" onclick="switchReportType('weekly')">
+                📅 Weekly Report
+            </div>
+            <div class="report-type-tab" onclick="switchReportType('monthly')">
+                📊 Monthly Report
+            </div>
+            <div class="report-type-tab" onclick="switchReportType('annual')">
+                📈 Annual Report
+            </div>
+        </div>
+
+        <!-- Weekly Report -->
+        <div id="weeklyReport" class="report-content active">
+            <div class="time-navigation">
+                <button class="nav-btn" onclick="navigateWeek(-1)">← Previous Week</button>
+                <div class="time-label" id="weekLabel">Loading...</div>
+                <button class="nav-btn" onclick="navigateWeek(1)">Next Week →</button>
+            </div>
+            <div class="export-buttons">
+                <button class="btn-export" onclick="exportToExcel('weekly')">📊 Export to Excel</button>
+                <button class="btn-export pdf" onclick="exportToPDF('weekly')">📄 Export to PDF</button>
+            </div>
+            <div id="weeklyContent">
+                <p class="empty-state">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Monthly Report -->
+        <div id="monthlyReport" class="report-content">
+            <div class="time-navigation">
+                <button class="nav-btn" onclick="navigateMonth(-1)">← Previous Month</button>
+                <div class="time-label" id="monthLabel">Loading...</div>
+                <button class="nav-btn" onclick="navigateMonth(1)">Next Month →</button>
+            </div>
+            <div class="export-buttons">
+                <button class="btn-export" onclick="exportToExcel('monthly')">📊 Export to Excel</button>
+                <button class="btn-export pdf" onclick="exportToPDF('monthly')">📄 Export to PDF</button>
+            </div>
+            <div id="monthlyContent">
+                <p class="empty-state">Loading...</p>
+            </div>
+        </div>
+
+        <!-- Annual Report -->
+        <div id="annualReport" class="report-content">
+            <div class="time-navigation">
+                <button class="nav-btn" onclick="navigateYear(-1)">← Previous Year</button>
+                <div class="time-label" id="yearLabel">Loading...</div>
+                <button class="nav-btn" onclick="navigateYear(1)">Next Year →</button>
+            </div>
+            <div class="export-buttons">
+                <button class="btn-export" onclick="exportToExcel('annual')">📊 Export to Excel</button>
+                <button class="btn-export pdf" onclick="exportToPDF('annual')">📄 Export to PDF</button>
+            </div>
+            <div id="annualContent">
+                <p class="empty-state">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        // Global state
+        let currentReportType = 'weekly';
+        let currentWeekStart = null;
+        let currentMonth = null;
+        let currentYear = null;
+        let weeklyGoals = [];
+        let monthlyGoals = [];
+        let projects = [];
+        let allTasks = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Set current dates
+            const now = new Date();
+            currentWeekStart = getWeekStart(now);
+            currentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            currentYear = now.getFullYear();
+
+            // Load data
+            await loadInitialData();
+            renderCurrentReport();
+        });
+
+        async function loadInitialData() {
+            try {
+                [weeklyGoals, monthlyGoals, projects, allTasks] = await Promise.all([
+                    api.getWeeklyGoals(),
+                    api.getMonthlyGoals(),
+                    api.getProjects(),
+                    api.getTasks()
+                ]);
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+                showError('Failed to load report data');
+            }
+        }
+
+        // Report type switching
+        function switchReportType(type) {
+            currentReportType = type;
+
+            // Update tab styles
+            document.querySelectorAll('.report-type-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('.report-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(`${type}Report`).classList.add('active');
+
+            renderCurrentReport();
+        }
+
+        function renderCurrentReport() {
+            switch (currentReportType) {
+                case 'weekly':
+                    renderWeeklyReport();
+                    break;
+                case 'monthly':
+                    renderMonthlyReport();
+                    break;
+                case 'annual':
+                    renderAnnualReport();
+                    break;
+            }
+        }
+
+        // Helper function to get monthly goals that overlap with current week (at least 1 workday)
+        function getOverlappingMonthlyGoals(weekStart, weekEnd) {
+            return monthlyGoals.filter(mg => {
+                const goalStart = new Date(mg.start_date);
+                const goalEnd = new Date(mg.end_date);
+
+                // Check if date ranges overlap
+                if (goalEnd < weekStart || goalStart > weekEnd) return false;
+
+                // Calculate overlap period
+                const overlapStart = goalStart > weekStart ? goalStart : weekStart;
+                const overlapEnd = goalEnd < weekEnd ? goalEnd : weekEnd;
+
+                // Count workdays (Mon-Fri) in overlap
+                let workdaysInOverlap = 0;
+                let currentDay = new Date(overlapStart);
+
+                while (currentDay <= overlapEnd) {
+                    const dayOfWeek = currentDay.getDay();
+                    if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday-Friday
+                        workdaysInOverlap++;
+                    }
+                    currentDay.setDate(currentDay.getDate() + 1);
+                }
+
+                return workdaysInOverlap >= 1;
+            });
+        }
+
+        // === WEEKLY REPORT ===
+        function renderWeeklyReport() {
+            const weekEnd = new Date(currentWeekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+
+            document.getElementById('weekLabel').textContent =
+                `Week of ${currentWeekStart.toLocaleDateString()} - ${weekEnd.toLocaleDateString()}`;
+
+            const container = document.getElementById('weeklyContent');
+
+            // Filter tasks for this week
+            const weekTasks = allTasks.filter(t => {
+                const taskDate = new Date(t.date);
+                return taskDate >= currentWeekStart && taskDate <= weekEnd;
+            });
+
+            let html = '';
+
+            // Get monthly goals that overlap with this week
+            const overlappingMonthlyGoals = getOverlappingMonthlyGoals(currentWeekStart, weekEnd);
+
+            // Show overlapping monthly goals with nested weekly goals
+            if (overlappingMonthlyGoals.length > 0) {
+                html += '<div class="project-header">📅 Monthly Goals (Active This Week)</div>';
+
+                overlappingMonthlyGoals.forEach(mg => {
+                    const mgTasks = weekTasks.filter(t => t.monthly_goal_id === mg.id);
+                    const mgCompletedCount = mgTasks.filter(t => t.completed).length;
+                    const startDate = new Date(mg.start_date).toLocaleDateString();
+                    const endDate = new Date(mg.end_date).toLocaleDateString();
+
+                    html += `
+                        <div class="report-card">
+                            <div class="goal-header">
+                                🎯 ${escapeHtml(mg.name)}
+                                <span style="float: right; font-size: 0.9em; color: #718096;">
+                                    ${mgCompletedCount}/${mgTasks.length} completed
+                                </span>
+                            </div>
+                            <div style="color: #718096; font-size: 0.9em; margin-bottom: 10px;">
+                                Goal Period: ${startDate} - ${endDate}
+                            </div>
+                    `;
+
+                    if (mgTasks.length === 0) {
+                        html += '<p style="color: #a0aec0; padding: 20px; text-align: center;">No tasks for this goal this week</p>';
+                    } else {
+                        html += '<div class="progress-bar"><div class="progress-fill" style="width: ' +
+                            (mgTasks.length > 0 ? (mgCompletedCount / mgTasks.length * 100) : 0) + '%"></div></div>';
+
+                        // Find weekly goals that have tasks under this monthly goal
+                        const weeklyGoalIds = [...new Set(mgTasks.filter(t => t.weekly_goal_id).map(t => t.weekly_goal_id))];
+                        const mgWeeklyGoals = weeklyGoals.filter(wg => weeklyGoalIds.includes(wg.id));
+
+                        // Render weekly goals nested under monthly goal
+                        mgWeeklyGoals.forEach(wg => {
+                            const wgTasks = mgTasks.filter(t => t.weekly_goal_id === wg.id);
+                            const wgCompletedCount = wgTasks.filter(t => t.completed).length;
+
+                            html += `
+                                <div style="margin: 15px 0; padding: 15px; background: #f7fafc; border-radius: 8px; border-left: 4px solid #48bb78;">
+                                    <div style="font-weight: 600; color: #2d3748; margin-bottom: 10px;">
+                                        📌 ${escapeHtml(wg.name)}
+                                        <span style="float: right; font-size: 0.9em; color: #718096;">
+                                            ${wgCompletedCount}/${wgTasks.length} completed
+                                        </span>
+                                    </div>
+                            `;
+
+                            wgTasks.forEach(task => {
+                                const taskDate = new Date(task.date).toLocaleDateString();
+                                html += `
+                                    <div class="task-item" style="display: flex; align-items: center; gap: 15px; background: white; margin-bottom: 8px;">
+                                        <div class="task-checkbox ${task.completed ? 'checked' : 'unchecked'}" onclick="event.stopPropagation(); toggleTaskComplete(${task.id}, ${!task.completed})">
+                                            ${task.completed ? '✓' : ''}
+                                        </div>
+                                        <div class="task-title ${task.completed ? 'completed' : ''}" style="flex: 1;">
+                                            ${escapeHtml(task.title)}
+                                        </div>
+                                        <div class="task-date">${taskDate}</div>
+                                        <div class="task-actions-menu">
+                                            <button class="action-btn" onclick="toggleTaskMenu(event, ${task.id})" title="More options" style="background: none; border: none; color: #667eea; cursor: pointer; font-size: 1.2em; padding: 5px;">⋮</button>
+                                            <div id="taskMenu-${task.id}" class="task-actions-dropdown">
+                                                <button onclick="editTask(${task.id}); closeAllTaskMenus()">✏️ Edit Task</button>
+                                                ${task.experiments && task.experiments.length > 0 ?
+                                                    `<button onclick="handleTaskClick(${task.id}); closeAllTaskMenus()">🧪 View Experiment</button>` : ''}
+                                                <button class="delete-option" onclick="deleteTask(${task.id}); closeAllTaskMenus()">🗑️ Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+
+                            html += '</div>';
+                        });
+
+                        // Render tasks directly under monthly goal (no weekly goal)
+                        const directTasks = mgTasks.filter(t => !t.weekly_goal_id);
+                        if (directTasks.length > 0) {
+                            html += '<div style="margin-top: 10px;">';
+                            directTasks.forEach(task => {
+                                const taskDate = new Date(task.date).toLocaleDateString();
+                                html += `
+                                    <div class="task-item" style="display: flex; align-items: center; gap: 15px;">
+                                        <div class="task-checkbox ${task.completed ? 'checked' : 'unchecked'}" onclick="event.stopPropagation(); toggleTaskComplete(${task.id}, ${!task.completed})">
+                                            ${task.completed ? '✓' : ''}
+                                        </div>
+                                        <div class="task-title ${task.completed ? 'completed' : ''}" style="flex: 1;">
+                                            ${escapeHtml(task.title)}
+                                        </div>
+                                        <div class="task-date">${taskDate}</div>
+                                        <div class="task-actions-menu">
+                                            <button class="action-btn" onclick="toggleTaskMenu(event, ${task.id})" title="More options" style="background: none; border: none; color: #667eea; cursor: pointer; font-size: 1.2em; padding: 5px;">⋮</button>
+                                            <div id="taskMenu-${task.id}" class="task-actions-dropdown">
+                                                <button onclick="editTask(${task.id}); closeAllTaskMenus()">✏️ Edit Task</button>
+                                                ${task.experiments && task.experiments.length > 0 ?
+                                                    `<button onclick="handleTaskClick(${task.id}); closeAllTaskMenus()">🧪 View Experiment</button>` : ''}
+                                                <button class="delete-option" onclick="deleteTask(${task.id}); closeAllTaskMenus()">🗑️ Delete</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            html += '</div>';
+                        }
+                    }
+
+                    html += '</div>';
+                });
+            }
+
+            // Show weekly goals that don't have a monthly goal
+            const orphanWeeklyGoals = weeklyGoals.filter(wg => {
+                const wgTasks = weekTasks.filter(t => t.weekly_goal_id === wg.id && !t.monthly_goal_id);
+                return wgTasks.length > 0;
+            });
+
+            if (orphanWeeklyGoals.length > 0) {
+                html += '<div class="project-header">📌 Weekly Goals (No Monthly Goal)</div>';
+
+                orphanWeeklyGoals.forEach(wg => {
+                    const goalTasks = weekTasks.filter(t => t.weekly_goal_id === wg.id && !t.monthly_goal_id);
+                    const completedCount = goalTasks.filter(t => t.completed).length;
+
+                    html += `
+                        <div class="report-card">
+                            <div class="goal-header">
+                                📌 ${escapeHtml(wg.name)}
+                                <span style="float: right; font-size: 0.9em; color: #718096;">
+                                    ${completedCount}/${goalTasks.length} completed
+                                </span>
+                            </div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ' +
+                                (goalTasks.length > 0 ? (completedCount / goalTasks.length * 100) : 0) + '%"></div></div>
+                    `;
+
+                    goalTasks.forEach(task => {
+                        const taskDate = new Date(task.date).toLocaleDateString();
+                        html += `
+                            <div class="task-item" style="display: flex; align-items: center; gap: 15px;">
+                                <div class="task-checkbox ${task.completed ? 'checked' : 'unchecked'}" onclick="event.stopPropagation(); toggleTaskComplete(${task.id}, ${!task.completed})">
+                                    ${task.completed ? '✓' : ''}
+                                </div>
+                                <div class="task-title ${task.completed ? 'completed' : ''}" style="flex: 1;">
+                                    ${escapeHtml(task.title)}
+                                </div>
+                                <div class="task-date">${taskDate}</div>
+                                <div class="task-actions-menu">
+                                    <button class="action-btn" onclick="toggleTaskMenu(event, ${task.id})" title="More options" style="background: none; border: none; color: #667eea; cursor: pointer; font-size: 1.2em; padding: 5px;">⋮</button>
+                                    <div id="taskMenu-${task.id}" class="task-actions-dropdown">
+                                        <button onclick="editTask(${task.id}); closeAllTaskMenus()">✏️ Edit Task</button>
+                                        ${task.experiments && task.experiments.length > 0 ?
+                                            `<button onclick="handleTaskClick(${task.id}); closeAllTaskMenus()">🧪 View Experiment</button>` : ''}
+                                        <button class="delete-option" onclick="deleteTask(${task.id}); closeAllTaskMenus()">🗑️ Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += '</div>';
+                });
+            }
+
+            // Show tasks without monthly or weekly goals
+            const unassignedTasks = weekTasks.filter(t => !t.weekly_goal_id && !t.monthly_goal_id);
+            if (unassignedTasks.length > 0) {
+                const completedCount = unassignedTasks.filter(t => t.completed).length;
+                html += `
+                    <div class="report-card">
+                        <div class="goal-header">
+                            📋 Unassigned Tasks
+                            <span style="float: right; font-size: 0.9em; color: #718096;">
+                                ${completedCount}/${unassignedTasks.length} completed
+                            </span>
+                        </div>
+                `;
+
+                unassignedTasks.forEach(task => {
+                    const taskDate = new Date(task.date).toLocaleDateString();
+                    html += `
+                        <div class="task-item" style="display: flex; align-items: center; gap: 15px;">
+                            <div class="task-checkbox ${task.completed ? 'checked' : 'unchecked'}" onclick="event.stopPropagation(); toggleTaskComplete(${task.id}, ${!task.completed})">
+                                ${task.completed ? '✓' : ''}
+                            </div>
+                            <div class="task-title ${task.completed ? 'completed' : ''}" style="flex: 1;">
+                                ${escapeHtml(task.title)}
+                            </div>
+                            <div class="task-date">${taskDate}</div>
+                            <div class="task-actions-menu">
+                                <button class="action-btn" onclick="toggleTaskMenu(event, ${task.id})" title="More options" style="background: none; border: none; color: #667eea; cursor: pointer; font-size: 1.2em; padding: 5px;">⋮</button>
+                                <div id="taskMenu-${task.id}" class="task-actions-dropdown">
+                                    <button onclick="editTask(${task.id}); closeAllTaskMenus()">✏️ Edit Task</button>
+                                    ${task.experiments && task.experiments.length > 0 ?
+                                        `<button onclick="handleTaskClick(${task.id}); closeAllTaskMenus()">🧪 View Experiment</button>` : ''}
+                                    <button class="delete-option" onclick="deleteTask(${task.id}); closeAllTaskMenus()">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+            }
+
+            container.innerHTML = html || '<div class="empty-state">No tasks this week</div>';
+        }
+
+        function navigateWeek(delta) {
+            currentWeekStart.setDate(currentWeekStart.getDate() + (delta * 7));
+            renderWeeklyReport();
+        }
+
+        // === MONTHLY REPORT ===
+        async function renderMonthlyReport() {
+            const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            document.getElementById('monthLabel').textContent = monthName;
+
+            const container = document.getElementById('monthlyContent');
+            container.innerHTML = '<p style="text-align: center; padding: 40px; color: #718096;">Loading...</p>';
+
+            const monthStart = new Date(currentMonth);
+            const monthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+
+            if (projects.length === 0) {
+                container.innerHTML = '<div class="empty-state">No projects found.<br>Create some in the Dashboard!</div>';
+                return;
+            }
+
+            let html = '';
+
+            for (const project of projects) {
+                const annualGoals = await api.getAnnualGoals(project.id, currentMonth.getFullYear());
+
+                if (annualGoals.length === 0) continue;
+
+                html += `<div class="project-header">${escapeHtml(project.name)}</div>`;
+
+                for (const ag of annualGoals) {
+                    const monthlyGoals = await api.getMonthlyGoals(ag.id);
+
+                    // Filter monthly goals that overlap with this month
+                    const relevantGoals = monthlyGoals.filter(mg => {
+                        const mgStart = new Date(mg.start_date);
+                        const mgEnd = new Date(mg.end_date);
+                        return !(mgEnd < monthStart || mgStart > monthEnd);
+                    });
+
+                    if (relevantGoals.length === 0) continue;
+
+                    html += `<div class="report-card">`;
+                    html += `<div class="goal-header">🎯 ${escapeHtml(ag.name)} (${ag.year})</div>`;
+
+                    for (const mg of relevantGoals) {
+                        const mgTasks = allTasks.filter(t => t.monthly_goal_id === mg.id);
+                        const completedCount = mgTasks.filter(t => t.completed).length;
+                        const progressPercent = mgTasks.length > 0 ? (completedCount / mgTasks.length * 100) : 0;
+
+                        const startDate = new Date(mg.start_date).toLocaleDateString();
+                        const endDate = new Date(mg.end_date).toLocaleDateString();
+
+                        html += `
+                            <div style="margin: 10px 0; padding: 12px; background: #f7fafc; border-radius: 8px; border-left: 4px solid #667eea;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <strong style="font-size: 1.0em; color: #2d3748;">${escapeHtml(mg.name)}</strong>
+                                    <span class="status-badge ${mg.status}" style="padding: 2px 8px; font-size: 0.75em;">${mg.status}</span>
+                                </div>
+                                <div style="color: #718096; font-size: 0.85em; margin-bottom: 6px;">
+                                    ${startDate} - ${endDate} | ${mgTasks.length} tasks (${completedCount} done, ${progressPercent.toFixed(0)}%)
+                                </div>
+                                <div class="progress-bar" style="height: 6px;">
+                                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                                </div>
+                        `;
+
+                        // Add weekly goals that have tasks associated with this monthly goal
+                        const mgWeeklyGoalIds = new Set(
+                            mgTasks
+                                .filter(t => t.weekly_goal_id)
+                                .map(t => t.weekly_goal_id)
+                        );
+
+                        if (mgWeeklyGoalIds.size > 0) {
+                            const mgWeeklyGoals = weeklyGoals.filter(wg => mgWeeklyGoalIds.has(wg.id));
+
+                            mgWeeklyGoals.forEach(wg => {
+                                const wgTasks = mgTasks.filter(t => t.weekly_goal_id === wg.id);
+                                const wgCompletedCount = wgTasks.filter(t => t.completed).length;
+                                const wgProgressPercent = wgTasks.length > 0 ? (wgCompletedCount / wgTasks.length * 100) : 0;
+
+                                html += `
+                                    <div style="margin: 8px 0 8px 20px; padding: 8px; background: white; border-radius: 6px; border-left: 3px solid #48bb78;">
+                                        <div style="font-size: 0.9em; color: #2d3748; margin-bottom: 4px;">
+                                            📌 ${escapeHtml(wg.name)} | ${wgTasks.length} tasks (${wgCompletedCount} done, ${wgProgressPercent.toFixed(0)}%)
+                                        </div>
+                                        <div class="progress-bar" style="height: 4px;">
+                                            <div class="progress-fill" style="width: ${wgProgressPercent}%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        html += '</div>';
+                    }
+
+                    html += '</div>';
+                }
+            }
+
+            container.innerHTML = html || '<div class="empty-state">No monthly goals for this month</div>';
+        }
+
+        function navigateMonth(delta) {
+            currentMonth.setMonth(currentMonth.getMonth() + delta);
+            renderMonthlyReport();
+        }
+
+        // === ANNUAL REPORT ===
+        async function renderAnnualReport() {
+            document.getElementById('yearLabel').textContent = currentYear;
+
+            const container = document.getElementById('annualContent');
+            container.innerHTML = '<p style="text-align: center; padding: 40px; color: #718096;">Loading...</p>';
+
+            if (projects.length === 0) {
+                container.innerHTML = '<div class="empty-state">No projects found.<br>Create some in the Dashboard!</div>';
+                return;
+            }
+
+            let html = '';
+
+            for (const project of projects) {
+                const annualGoals = await api.getAnnualGoals(project.id, currentYear);
+
+                if (annualGoals.length === 0) continue;
+
+                html += `<div class="project-header">${escapeHtml(project.name)}</div>`;
+
+                for (const ag of annualGoals) {
+                    const monthlyGoals = await api.getMonthlyGoals(ag.id);
+                    const totalTasks = ag.total_tasks || 0;
+                    const completedTasks = ag.completed_tasks || 0;
+                    const progressPercent = totalTasks > 0 ? (completedTasks / totalTasks * 100) : 0;
+
+                    html += `
+                        <div class="report-card">
+                            <div class="goal-header">🎯 ${escapeHtml(ag.name)} (${ag.year})</div>
+
+                            <div class="summary-stats">
+                                <div class="stat">
+                                    <div class="stat-value">${monthlyGoals.length}</div>
+                                    <div class="stat-label">Monthly Goals</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">${totalTasks}</div>
+                                    <div class="stat-label">Total Tasks</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">${completedTasks}</div>
+                                    <div class="stat-label">Completed</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-value">${progressPercent.toFixed(0)}%</div>
+                                    <div class="stat-label">Progress</div>
+                                </div>
+                            </div>
+
+                            <div class="progress-bar" style="height: 15px;">
+                                <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                            </div>
+
+                            <div style="margin-top: 20px;">
+                                <strong style="color: #4a5568;">Monthly Goals:</strong>
+                                <div style="display: grid; gap: 10px; margin-top: 10px;">
+                    `;
+
+                    monthlyGoals.forEach(mg => {
+                        const startDate = new Date(mg.start_date).toLocaleDateString();
+                        const endDate = new Date(mg.end_date).toLocaleDateString();
+                        html += `
+                            <div style="background: #f7fafc; padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                <span>${escapeHtml(mg.name)} <span style="color: #718096; font-size: 0.9em;">(${startDate} - ${endDate})</span></span>
+                                <span class="status-badge ${mg.status}">${mg.status}</span>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            container.innerHTML = html || '<div class="empty-state">No annual goals for this year</div>';
+        }
+
+        function navigateYear(delta) {
+            currentYear += delta;
+            renderAnnualReport();
+        }
+
+        // Toggle task completion
+        async function toggleTaskComplete(taskId, completed) {
+            try {
+                await api.updateTask(taskId, { completed: completed });
+                // Reload tasks and re-render current report
+                allTasks = await api.getTasks();
+                renderCurrentReport();
+            } catch (error) {
+                console.error('Error updating task:', error);
+                showError('Failed to update task. Please try again.');
+            }
+        }
+
+        // Helper functions
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+            return new Date(d.setDate(diff));
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Export Functions
+        function exportToExcel(reportType) {
+            let url;
+            switch (reportType) {
+                case 'weekly':
+                    const weekStart = formatDate(currentWeekStart);
+                    url = `/api/export/excel/weekly?week_start=${weekStart}`;
+                    break;
+                case 'monthly':
+                    url = `/api/export/excel/monthly?month=${currentMonth.getMonth() + 1}&year=${currentMonth.getFullYear()}`;
+                    break;
+                case 'annual':
+                    url = `/api/export/excel/annual?year=${currentYear}`;
+                    break;
+            }
+            window.location.href = url;
+        }
+
+        function exportToPDF(reportType) {
+            let url;
+            switch (reportType) {
+                case 'weekly':
+                    const weekStart = formatDate(currentWeekStart);
+                    url = `/api/export/pdf/weekly?week_start=${weekStart}`;
+                    break;
+                case 'monthly':
+                    url = `/api/export/pdf/monthly?month=${currentMonth.getMonth() + 1}&year=${currentMonth.getFullYear()}`;
+                    break;
+                case 'annual':
+                    url = `/api/export/pdf/annual?year=${currentYear}`;
+                    break;
+            }
+            window.location.href = url;
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Task-Experiment redirect functions
+        async function handleTaskClick(taskId) {
+            try {
+                const task = allTasks.find(t => t.id === taskId);
+                if (!task || !task.experiments || task.experiments.length === 0) {
+                    return; // No experiments linked
+                }
+
+                if (task.experiments.length === 1) {
+                    window.location.href = `experiment-detail.html?id=${task.experiments[0].id}`;
+                } else {
+                    showExperimentSelectionModal(task.experiments);
+                }
+            } catch (error) {
+                console.error('Error handling task click:', error);
+            }
+        }
+
+        function showExperimentSelectionModal(experiments) {
+            const modal = document.getElementById('experimentSelectionModal');
+            const listContainer = document.getElementById('experimentSelectionList');
+
+            listContainer.innerHTML = experiments.map(exp => `
+                <div class="experiment-selection-item" onclick="navigateToExperiment(${exp.id})">
+                    <div style="font-weight: 600; color: #2d3748; margin-bottom: 5px;">${escapeHtml(exp.name)}</div>
+                    <div style="font-size: 0.85em; color: #718096;">Status: ${exp.status}</div>
+                </div>
+            `).join('');
+
+            modal.style.display = 'flex';
+        }
+
+        function closeExperimentSelectionModal() {
+            document.getElementById('experimentSelectionModal').style.display = 'none';
+        }
+
+        function navigateToExperiment(experimentId) {
+            window.location.href = `experiment-detail.html?id=${experimentId}`;
+        }
+
+        function showError(message) {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #f56565; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 4000);
+        }
+
+        // Task Menu Control Functions
+        function toggleTaskMenu(event, taskId) {
+            event.stopPropagation();
+
+            // Close all other menus
+            document.querySelectorAll('.task-actions-dropdown').forEach(menu => {
+                if (menu.id !== `taskMenu-${taskId}`) {
+                    menu.classList.remove('show');
+                }
+            });
+
+            // Toggle this menu
+            const menu = document.getElementById(`taskMenu-${taskId}`);
+            if (menu) {
+                menu.classList.toggle('show');
+            }
+        }
+
+        function closeAllTaskMenus() {
+            document.querySelectorAll('.task-actions-dropdown').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+
+        // Close menus when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.task-actions-menu')) {
+                closeAllTaskMenus();
+            }
+        });
+
+        // Edit and Delete functions
+        function editTask(taskId) {
+            // Redirect to dashboard with edit parameter
+            window.location.href = `dashboard.html?editTask=${taskId}`;
+        }
+
+        async function deleteTask(taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) {
+                return;
+            }
+
+            try {
+                await api.deleteTask(taskId);
+                // Reload data and re-render
+                await loadInitialData();
+                renderCurrentReport();
+                showSuccess('Task deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showError('Failed to delete task. Please try again.');
+            }
+        }
+
+        function showSuccess(message) {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #48bb78; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+    </script>
+
+    <!-- Experiment Selection Modal -->
+    <div id="experimentSelectionModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Select Experiment to View</h3>
+                <button class="close-btn" onclick="closeExperimentSelectionModal()">&times;</button>
+            </div>
+            <div id="experimentSelectionList" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+</body>
+</html>

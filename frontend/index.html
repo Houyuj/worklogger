@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Logger - Demo Navigation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            color: #2d3748;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 50px;
+            font-size: 1.1em;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .demo-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px;
+            text-decoration: none;
+            color: white;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .demo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .demo-card .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .demo-card h2 {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+        }
+
+        .demo-card p {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .demo-card.primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .demo-card.secondary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .demo-card.tertiary {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .demo-card.quaternary {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .features {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+
+        .features h3 {
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .features ul {
+            list-style: none;
+            color: #4a5568;
+        }
+
+        .features li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #48bb78;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Work Logger System</h1>
+        <p class="subtitle">Goal-based work organization with automatic reporting</p>
+
+        <div class="demo-grid">
+            <a href="dashboard.html" class="demo-card primary">
+                <div class="icon">📝</div>
+                <h2>Dashboard</h2>
+                <p>To-do based daily interface with goal tagging</p>
+            </a>
+
+            <a href="reports.html" class="demo-card secondary">
+                <div class="icon">📊</div>
+                <h2>Reports</h2>
+                <p>Task completion analytics and goal progress</p>
+            </a>
+
+            <a href="gantt.html" class="demo-card tertiary">
+                <div class="icon">📈</div>
+                <h2>Gantt Chart</h2>
+                <p>Annual goals with monthly goal tracking</p>
+            </a>
+
+            <a href="experiments.html" class="demo-card quaternary">
+                <div class="icon">🧪</div>
+                <h2>Experiments</h2>
+                <p>Research tracking with tables and custom tags</p>
+            </a>
+        </div>
+
+        <div class="features">
+            <h3>Key Features</h3>
+            <ul>
+                <li>Simple to-do interface - quick add or detailed task creation</li>
+                <li>Three-tier goal system: Annual → Monthly → Weekly tags</li>
+                <li>No time tracking - focus on task completion</li>
+                <li>Flexible experiment tracking with table support</li>
+                <li>Simplified Gantt chart with color-coded monthly goals</li>
+                <li>Custom tag system stored in database for reuse</li>
+                <li>Standalone experiments can link to daily tasks on-demand</li>
+                <li>Auto-generated weekly and monthly reports</li>
+                <li>Export to PDF, Excel, and Markdown</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
