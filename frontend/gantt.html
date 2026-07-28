@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, max-age=0">
+    <title>Work Logger - Gantt Chart</title>
+    <style>
+        :root {
+            --page-bg: #f4f6f5;
+            --surface: #ffffff;
+            --text: #27383d;
+            --text-muted: #64757a;
+            --border: #d7e1de;
+            --primary: #58728f;
+            --primary-strong: #47627e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--page-bg);
+            color: var(--text);
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .user-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-tabs {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-tab {
+            padding: 15px 25px;
+            text-decoration: none;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .controls {
+            background: var(--surface);
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .zoom-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .zoom-btn:hover {
+            background: var(--primary-strong);
+        }
+
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .year-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .year-btn:hover {
+            background: var(--primary-strong);
+        }
+
+        .view-toggle {
+            display: inline-flex;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .view-toggle button {
+            border: 0;
+            background: white;
+            color: #4a5568;
+            min-width: 72px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .view-toggle button.active {
+            background: #0f766e;
+            color: white;
+        }
+
+        .view-toggle button:focus-visible {
+            outline: 3px solid #93c5fd;
+            outline-offset: -3px;
+        }
+
+        .gantt-card {
+            background: white;
+            border-radius: 15px;
+            padding: 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gantt-split-container {
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            height: 600px;
+            min-height: 300px;
+        }
+
+        .gantt-left-panel {
+            width: 350px;
+            min-width: 350px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            border-right: 2px solid #e2e8f0;
+            background: white;
+            z-index: 2;
+        }
+
+        .gantt-right-panel {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .gantt-wrapper {
+            /* Wrapper for the scrollable content */
+        }
+
+        .gantt-container {
+            min-width: 2000px;
+            transition: min-width 0.3s;
+        }
+
+        .gantt-header {
+            display: flex;
+            margin-bottom: 0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .gantt-goals-header {
+            width: 350px;
+            min-width: 350px;
+            padding: 0;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .goals-title-row {
+            padding: 10px 20px;
+            margin-bottom: 5px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+        }
+
+        .goals-spacer-row {
+            padding: 5px 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            min-height: 26px;
+        }
+
+        .gantt-timeline-header {
+            flex: 1;
+            padding-top: 0;
+        }
+
+        .resize-handle {
+            height: 10px;
+            background: #e2e8f0;
+            cursor: ns-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .resize-handle:hover {
+            background: #cbd5e0;
+        }
+
+        .resize-handle::before {
+            content: '⋯';
+            color: #718096;
+            font-size: 1.2em;
+            letter-spacing: 3px;
+        }
+
+        /* Month row */
+        .month-row {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            border-bottom: 2px solid #667eea;
+            margin-bottom: 5px;
+        }
+
+        .month-label {
+            padding: 10px 5px;
+            text-align: center;
+            font-weight: bold;
+            color: #667eea;
+            border-right: 1px solid #cbd5e0;
+            font-size: 0.9em;
+        }
+
+        .month-label:last-child {
+            border-right: none;
+        }
+
+        /* Week row */
+        .week-row {
+            display: grid;
+            grid-template-columns: repeat(52, 1fr);
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .week-label {
+            padding: 5px 2px;
+            text-align: center;
+            font-size: 0.65em;
+            color: #718096;
+            border-right: 1px solid #f0f0f0;
+        }
+
+        .week-label.month-boundary {
+            border-left: 2px solid #667eea;
+        }
+
+        .day-row {
+            display: grid;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .day-label {
+            padding: 5px 2px;
+            text-align: center;
+            font-size: 0.7em;
+            color: #718096;
+            border-right: 1px solid #f0f0f0;
+        }
+
+        .project-section {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .project-title {
+            font-weight: 700;
+            color: #2d3748;
+            padding: 15px 20px;
+            background: #f7fafc;
+            border-left: 5px solid #f59e0b;
+            margin-bottom: 0;
+            font-size: 1.0em;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            white-space: normal;
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.3;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        .project-title:hover {
+            background: #edf2f7;
+        }
+
+        .gantt-row {
+            display: contents;
+        }
+
+        .annual-goal-name,
+        .monthly-goal-name {
+            padding: 12px 20px;
+            color: #4a5568;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 1px solid #f0f0f0;
+            background: white;
+            white-space: normal;
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.3;
+            display: flex;
+            align-items: center;
+            font-size: 0.95em;
+        }
+
+        .annual-goal-name:hover,
+        .monthly-goal-name:hover {
+            background: #edf2f7;
+            color: #667eea;
+        }
+
+        .timeline {
+            height: auto;
+            position: relative;
+            display: grid;
+            border-bottom: 1px solid #f0f0f0;
+            background: white;
+            padding: 0;
+        }
+
+        .month-goal,
+        .week-goal {
+            position: absolute;
+            height: 48px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            font-size: 0.70em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            overflow: visible;
+            white-space: normal;
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            line-height: 1.3;
+            z-index: 1;
+        }
+
+        .month-goal:hover,
+        .week-goal:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+            z-index: 10;
+        }
+
+        .month-goal.planned {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .month-goal.completed {
+            background: #cbd5e0;
+            color: #2d3748;
+        }
+
+        .month-goal.in-progress {
+            background: #9ae6b4;
+            color: #22543d;
+        }
+
+        .month-goal.terminated {
+            background: #fc8181;
+            color: #742a2a;
+        }
+
+        .week-goal {
+            height: 42px;
+            border-left: 4px solid currentColor;
+        }
+
+        .week-goal.planned {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .week-goal.completed {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .week-goal.in-progress {
+            background: #bbf7d0;
+            color: #15803d;
+        }
+
+        .week-goal.terminated {
+            background: #fecaca;
+            color: #b91c1c;
+        }
+
+        .no-activity-line {
+            position: absolute;
+            height: 100%;
+            border: 2px dashed #fc8181;
+            border-radius: 4px;
+            background: rgba(252, 129, 129, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7em;
+            color: #742a2a;
+        }
+
+        .month-tooltip {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d3748;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+
+        .month-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #2d3748;
+        }
+
+        .month-goal:hover .month-tooltip {
+            opacity: 1;
+        }
+
+        .legend {
+            display: flex;
+            gap: 30px;
+            margin-top: 40px;
+            padding-top: 30px;
+            padding-bottom: 40px;
+            margin-bottom: 20px;
+            border-top: 2px solid #e2e8f0;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #718096;
+        }
+
+        .legend-box {
+            width: 40px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-box.planned {
+            background: #bee3f8;
+        }
+
+        .legend-box.completed {
+            background: #cbd5e0;
+        }
+
+        .legend-box.in-progress {
+            background: #9ae6b4;
+        }
+
+        .legend-box.terminated {
+            background: #fc8181;
+        }
+
+        .legend-box.no-activity {
+            border: 2px dashed #fc8181;
+            background: rgba(252, 129, 129, 0.1);
+        }
+
+        .zoom-label {
+            color: #4a5568;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📊 Work Logger</div>
+        <div class="user-menu">
+            <span>👤 User</span>
+            <span>⚙️</span>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <a href="dashboard.html" class="nav-tab">Today</a>
+        <a href="reports.html" class="nav-tab">Reports</a>
+        <a href="gantt.html" class="nav-tab active">Gantt</a>
+        <a href="experiments.html" class="nav-tab">Protocols</a>
+        <a href="index.html" class="nav-tab">← Back to Index</a>
+    </div>
+
+    <div class="container">
+        <div class="controls">
+            <div class="year-selector">
+                <button class="year-btn" onclick="changePeriod(-1)" title="Previous period">&lt;</button>
+                <span class="zoom-label" id="currentPeriod">2025</span>
+                <button class="year-btn" onclick="changePeriod(1)" title="Next period">&gt;</button>
+            </div>
+
+            <div class="control-group">
+                <span class="zoom-label">View:</span>
+                <div class="view-toggle" aria-label="Gantt view">
+                    <button id="yearViewButton" class="active" onclick="setView('year')">Year</button>
+                    <button id="monthViewButton" onclick="setView('month')">Month</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <span class="zoom-label">Zoom:</span>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomOut()">−</button>
+                    <button class="zoom-btn" onclick="resetZoom()">100%</button>
+                    <button class="zoom-btn" onclick="zoomIn()">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="gantt-card">
+            <!-- Split container with resize handle -->
+            <div class="gantt-split-container" id="ganttSplitContainer">
+                <!-- Fixed left panel for project/goal names -->
+                <div class="gantt-left-panel" id="leftPanel">
+                    <div class="gantt-goals-header">
+                        <div class="goals-title-row">
+                            <h3 id="leftPanelTitle" style="margin: 0; color: #4a5568;">Projects & Goals</h3>
+                        </div>
+                        <div class="goals-spacer-row"></div>
+                    </div>
+                    <div id="leftPanelContent"></div>
+                </div>
+
+                <!-- Scrollable right panel for timeline -->
+                <div class="gantt-right-panel" id="rightPanel">
+                    <div class="gantt-wrapper" id="ganttWrapper">
+                        <div class="gantt-container">
+                            <div class="gantt-timeline-header" id="timelineHeader">
+                                <!-- Month labels -->
+                                <div class="month-row">
+                                    <div class="month-label">January</div>
+                                    <div class="month-label">February</div>
+                                    <div class="month-label">March</div>
+                                    <div class="month-label">April</div>
+                                    <div class="month-label">May</div>
+                                    <div class="month-label">June</div>
+                                    <div class="month-label">July</div>
+                                    <div class="month-label">August</div>
+                                    <div class="month-label">September</div>
+                                    <div class="month-label">October</div>
+                                    <div class="month-label">November</div>
+                                    <div class="month-label">December</div>
+                                </div>
+                                <!-- Week labels -->
+                                <div class="week-row">
+                                    <div class="week-label month-boundary">1</div>
+                                    <div class="week-label">2</div>
+                                    <div class="week-label">3</div>
+                                    <div class="week-label">4</div>
+                                    <div class="week-label month-boundary">5</div>
+                                    <div class="week-label">6</div>
+                                    <div class="week-label">7</div>
+                                    <div class="week-label">8</div>
+                                    <div class="week-label">9</div>
+                                    <div class="week-label month-boundary">10</div>
+                                    <div class="week-label">11</div>
+                                    <div class="week-label">12</div>
+                                    <div class="week-label">13</div>
+                                    <div class="week-label month-boundary">14</div>
+                                    <div class="week-label">15</div>
+                                    <div class="week-label">16</div>
+                                    <div class="week-label">17</div>
+                                    <div class="week-label month-boundary">18</div>
+                                    <div class="week-label">19</div>
+                                    <div class="week-label">20</div>
+                                    <div class="week-label">21</div>
+                                    <div class="week-label">22</div>
+                                    <div class="week-label month-boundary">23</div>
+                                    <div class="week-label">24</div>
+                                    <div class="week-label">25</div>
+                                    <div class="week-label">26</div>
+                                    <div class="week-label month-boundary">27</div>
+                                    <div class="week-label">28</div>
+                                    <div class="week-label">29</div>
+                                    <div class="week-label">30</div>
+                                    <div class="week-label">31</div>
+                                    <div class="week-label month-boundary">32</div>
+                                    <div class="week-label">33</div>
+                                    <div class="week-label">34</div>
+                                    <div class="week-label">35</div>
+                                    <div class="week-label month-boundary">36</div>
+                                    <div class="week-label">37</div>
+                                    <div class="week-label">38</div>
+                                    <div class="week-label">39</div>
+                                    <div class="week-label month-boundary">40</div>
+                                    <div class="week-label">41</div>
+                                    <div class="week-label">42</div>
+                                    <div class="week-label">43</div>
+                                    <div class="week-label">44</div>
+                                    <div class="week-label month-boundary">45</div>
+                                    <div class="week-label">46</div>
+                                    <div class="week-label">47</div>
+                                    <div class="week-label">48</div>
+                                    <div class="week-label month-boundary">49</div>
+                                    <div class="week-label">50</div>
+                                    <div class="week-label">51</div>
+                                    <div class="week-label">52</div>
+                                </div>
+                            </div>
+                            <div id="rightPanelContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resize handle -->
+            <div class="resize-handle" id="resizeHandle"></div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box planned"></div>
+                    <span>Planned</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box in-progress"></div>
+                    <span>In Progress</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box completed"></div>
+                    <span>Completed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box terminated"></div>
+                    <span>Terminated</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box no-activity"></div>
+                    <span>No Activity</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Edit Modal -->
+    <div id="projectEditModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <h2 style="margin-bottom: 20px; color: #2d3748;">✏️ Edit Project</h2>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: #4a5568; font-weight: 600; margin-bottom: 8px;">Project Name:</label>
+                <input type="text" id="editProjectName" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: #4a5568; font-weight: 600; margin-bottom: 8px;">Start Year (leave empty for no limit):</label>
+                <input type="number" id="editProjectStartYear" placeholder="e.g., 2024" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: #4a5568; font-weight: 600; margin-bottom: 8px;">End Year (leave empty for ongoing):</label>
+                <input type="number" id="editProjectEndYear" placeholder="e.g., 2025" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em;">
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <button onclick="saveProjectEdit()" style="flex: 1; padding: 15px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    Save Changes
+                </button>
+                <button onclick="closeProjectEditModal()" style="flex: 1; padding: 15px; background: #e2e8f0; color: #4a5568; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Annual Goal Edit Modal -->
+    <div id="annualGoalEditModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <h2 style="margin-bottom: 20px; color: #2d3748;">✏️ Edit Annual Goal</h2>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: #4a5568; font-weight: 600; margin-bottom: 8px;">Goal Name:</label>
+                <input type="text" id="editAnnualGoalName" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; color: #4a5568; font-weight: 600; margin-bottom: 8px;">Year:</label>
+                <input type="number" id="editAnnualGoalYear" placeholder="e.g., 2025" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em;">
+            </div>
+
+            <div style="display: flex; gap: 15px;">
+                <button onclick="saveAnnualGoalEdit()" style="flex: 1; padding: 15px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    Save Changes
+                </button>
+                <button onclick="closeAnnualGoalEditModal()" style="flex: 1; padding: 15px; background: #e2e8f0; color: #4a5568; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Goal Edit Modal -->
+    <div id="monthlyGoalModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <h2 style="margin-bottom: 20px; color: #2d3748;" id="modalGoalName">Monthly Goal</h2>
+
+            <div style="margin-bottom: 20px;">
+                <p style="color: #718096; margin-bottom: 10px;">Date Range:</p>
+                <p style="font-weight: 600; color: #2d3748;" id="modalDateRange">Loading...</p>
+            </div>
+
+            <!-- Status Change Section -->
+            <div style="margin-bottom: 20px;">
+                <p style="color: #718096; margin-bottom: 10px;">Change Status:</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="updateGoalStatus('planned')" style="flex: 1; min-width: 100px; padding: 12px; background: #bee3f8; color: #2c5282; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                        Planned
+                    </button>
+                    <button onclick="updateGoalStatus('in-progress')" style="flex: 1; min-width: 100px; padding: 12px; background: #9ae6b4; color: #22543d; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                        In Progress
+                    </button>
+                    <button onclick="updateGoalStatus('completed')" style="flex: 1; min-width: 100px; padding: 12px; background: #cbd5e0; color: #2d3748; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                        Completed
+                    </button>
+                    <button onclick="updateGoalStatus('terminated')" style="flex: 1; min-width: 100px; padding: 12px; background: #fc8181; color: #742a2a; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                        Terminated
+                    </button>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; flex-direction: column;">
+                <button onclick="editMonthlyGoalTimeRange()" style="width: 100%; padding: 15px; background: #667eea; color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    📅 Edit Time Range
+                </button>
+                <button onclick="viewMonthlyGoalReport()" style="width: 100%; padding: 15px; background: #48bb78; color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    📊 View Report for This Period
+                </button>
+                <button onclick="closeModal()" style="width: 100%; padding: 15px; background: #e2e8f0; color: #4a5568; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        let currentZoom = 1.0;
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth();
+        let currentView = 'year';
+        const wrapper = document.getElementById('ganttWrapper');
+        let selectedMonthlyGoal = null;
+        let selectedProject = null;
+        let selectedAnnualGoal = null;
+
+        // Project Edit Modal Functions
+        function openProjectEditModal(project) {
+            selectedProject = project;
+            document.getElementById('editProjectName').value = project.name || '';
+            document.getElementById('editProjectStartYear').value = project.start_year || '';
+            document.getElementById('editProjectEndYear').value = project.end_year || '';
+            document.getElementById('projectEditModal').style.display = 'flex';
+        }
+
+        function closeProjectEditModal() {
+            document.getElementById('projectEditModal').style.display = 'none';
+            selectedProject = null;
+        }
+
+        async function saveProjectEdit() {
+            if (!selectedProject) return;
+
+            const name = document.getElementById('editProjectName').value.trim();
+            const startYear = document.getElementById('editProjectStartYear').value;
+            const endYear = document.getElementById('editProjectEndYear').value;
+
+            if (!name) {
+                alert('Project name cannot be empty');
+                return;
+            }
+
+            try {
+                const updateData = {
+                    name: name,
+                    start_year: startYear ? parseInt(startYear) : null,
+                    end_year: endYear ? parseInt(endYear) : null
+                };
+
+                await api.updateProject(selectedProject.id, updateData);
+                closeProjectEditModal();
+                await loadGanttData(); // Reload chart
+                showSuccess('Project updated successfully!');
+            } catch (error) {
+                console.error('Error updating project:', error);
+                alert('Failed to update project: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        function showSuccess(message) {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #48bb78; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10001;';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // Annual Goal Edit Modal Functions
+        function openAnnualGoalEditModal(annualGoal) {
+            selectedAnnualGoal = annualGoal;
+            document.getElementById('editAnnualGoalName').value = annualGoal.name || '';
+            document.getElementById('editAnnualGoalYear').value = annualGoal.year || '';
+            document.getElementById('annualGoalEditModal').style.display = 'flex';
+        }
+
+        function closeAnnualGoalEditModal() {
+            document.getElementById('annualGoalEditModal').style.display = 'none';
+            selectedAnnualGoal = null;
+        }
+
+        async function saveAnnualGoalEdit() {
+            if (!selectedAnnualGoal) return;
+
+            const name = document.getElementById('editAnnualGoalName').value.trim();
+            const year = document.getElementById('editAnnualGoalYear').value;
+
+            if (!name) {
+                alert('Annual goal name cannot be empty');
+                return;
+            }
+
+            if (!year || year < 2000 || year > 2100) {
+                alert('Please enter a valid year (2000-2100)');
+                return;
+            }
+
+            try {
+                const updateData = {
+                    name: name,
+                    year: parseInt(year)
+                };
+
+                await api.updateAnnualGoal(selectedAnnualGoal.id, updateData);
+                closeAnnualGoalEditModal();
+                await loadGanttData(); // Reload chart
+                showSuccess('Annual goal updated successfully!');
+            } catch (error) {
+                console.error('Error updating annual goal:', error);
+                alert('Failed to update annual goal: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        // Initialize page
+        async function initializePage() {
+            updatePeriodLabel();
+            renderTimelineHeader();
+            await loadGanttData();
+        }
+
+        // Load Gantt data from API
+        async function loadGanttData() {
+            try {
+                const data = await api.getGanttData(currentYear);
+                renderGanttChart(data);
+            } catch (error) {
+                console.error('Error loading Gantt data:', error);
+                showError('Failed to load Gantt chart data');
+            }
+        }
+
+        function parseGoalDate(value) {
+            const [year, month, day] = value.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function daysBetween(start, end) {
+            const millisecondsPerDay = 24 * 60 * 60 * 1000;
+            return Math.round((end - start) / millisecondsPerDay);
+        }
+
+        function getTimelineRange() {
+            if (currentView === 'month') {
+                return {
+                    start: new Date(currentYear, currentMonth, 1),
+                    end: new Date(currentYear, currentMonth + 1, 0)
+                };
+            }
+            return {
+                start: new Date(currentYear, 0, 1),
+                end: new Date(currentYear, 11, 31)
+            };
+        }
+
+        function getVisibleMonthlyGoals(monthlyGoals) {
+            const range = getTimelineRange();
+            return monthlyGoals.filter(goal => {
+                const start = parseGoalDate(goal.start_date);
+                const end = parseGoalDate(goal.end_date);
+                return start <= range.end && end >= range.start;
+            });
+        }
+
+        function getWeeklyTaskRange(weeklyGoal) {
+            if (!weeklyGoal.task_start_date || !weeklyGoal.task_end_date) return null;
+            return {
+                start: parseGoalDate(weeklyGoal.task_start_date),
+                end: parseGoalDate(weeklyGoal.task_end_date)
+            };
+        }
+
+        function getVisibleWeeklyGoals(weeklyGoals) {
+            const range = getTimelineRange();
+            return weeklyGoals.filter(weeklyGoal => {
+                const taskRange = getWeeklyTaskRange(weeklyGoal);
+                return taskRange && taskRange.start <= range.end && taskRange.end >= range.start;
+            });
+        }
+
+        function assignGoalLanes(monthlyGoals) {
+            const lanes = new Map();
+            const laneEndDates = [];
+            const sortedGoals = [...monthlyGoals].sort((a, b) => {
+                const aRange = a.task_start_date ? getWeeklyTaskRange(a) : {
+                    start: parseGoalDate(a.start_date), end: parseGoalDate(a.end_date)
+                };
+                const bRange = b.task_start_date ? getWeeklyTaskRange(b) : {
+                    start: parseGoalDate(b.start_date), end: parseGoalDate(b.end_date)
+                };
+                return aRange.start - bRange.start || aRange.end - bRange.end;
+            }
+            );
+
+            sortedGoals.forEach(goal => {
+                const goalRange = goal.task_start_date ? getWeeklyTaskRange(goal) : {
+                    start: parseGoalDate(goal.start_date), end: parseGoalDate(goal.end_date)
+                };
+                const { start, end } = goalRange;
+                let laneIndex = laneEndDates.findIndex(laneEnd => start > laneEnd);
+                if (laneIndex === -1) {
+                    laneIndex = laneEndDates.length;
+                    laneEndDates.push(end);
+                } else {
+                    laneEndDates[laneIndex] = end;
+                }
+                lanes.set(goal.id, laneIndex);
+            });
+            return lanes;
+        }
+
+        function renderTimelineHeader() {
+            const header = document.getElementById('timelineHeader');
+            if (!header) return;
+
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+
+            if (currentView === 'month') {
+                const dayCount = new Date(currentYear, currentMonth + 1, 0).getDate();
+                header.innerHTML = `
+                    <div class="month-row" style="grid-template-columns: 1fr;">
+                        <div class="month-label">${monthNames[currentMonth]} ${currentYear}</div>
+                    </div>
+                    <div class="day-row" style="grid-template-columns: repeat(${dayCount}, 1fr);">
+                        ${Array.from({ length: dayCount }, (_, index) => `<div class="day-label">${index + 1}</div>`).join('')}
+                    </div>`;
+                requestAnimationFrame(synchronizeTimelineHeaderHeights);
+                return;
+            }
+
+            const weekCount = getIsoWeeksInYear(currentYear);
+            header.innerHTML = `
+                <div class="month-row">
+                    ${monthNames.map(name => `<div class="month-label">${name}</div>`).join('')}
+                </div>
+                <div class="week-row" style="grid-template-columns: repeat(${weekCount}, 1fr);">
+                    ${Array.from({ length: weekCount }, (_, index) => `<div class="week-label">${index + 1}</div>`).join('')}
+                </div>`;
+            requestAnimationFrame(synchronizeTimelineHeaderHeights);
+        }
+
+        function getIsoWeeksInYear(year) {
+            // ISO week containing 28 December is always the final ISO week of that year.
+            const date = new Date(Date.UTC(year, 11, 28));
+            const day = date.getUTCDay() || 7;
+            date.setUTCDate(date.getUTCDate() + 4 - day);
+            const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+            return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+        }
+
+        function synchronizeTimelineHeaderHeights() {
+            const timelineHeader = document.getElementById('timelineHeader');
+            const titleRow = document.querySelector('.goals-title-row');
+            const spacerRow = document.querySelector('.goals-spacer-row');
+            if (!timelineHeader || !titleRow || !spacerRow) return;
+
+            const titleBottomMargin = parseFloat(getComputedStyle(titleRow).marginBottom) || 0;
+            const spacerHeight = Math.max(0, timelineHeader.offsetHeight - titleRow.offsetHeight - titleBottomMargin);
+            spacerRow.style.height = `${spacerHeight}px`;
+            spacerRow.style.minHeight = `${spacerHeight}px`;
+        }
+
+        function updatePeriodLabel() {
+            const label = document.getElementById('currentPeriod');
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            label.textContent = currentView === 'month' ? `${monthNames[currentMonth]} ${currentYear}` : currentYear;
+            document.getElementById('yearViewButton').classList.toggle('active', currentView === 'year');
+            document.getElementById('monthViewButton').classList.toggle('active', currentView === 'month');
+            document.getElementById('leftPanelTitle').textContent = currentView === 'month'
+                ? 'Monthly Goals'
+                : 'Projects & Goals';
+        }
+
+        // Render Gantt chart
+        function renderGanttChart(projects) {
+            const leftPanel = document.getElementById('leftPanelContent');
+            const rightPanel = document.getElementById('rightPanelContent');
+
+            // Clear existing content
+            leftPanel.innerHTML = '';
+            rightPanel.innerHTML = '';
+            renderTimelineHeader();
+
+            if (projects.length === 0) {
+                leftPanel.innerHTML = '<p style="text-align: center; padding: 60px; color: #718096;">No projects found for ' + currentYear + '</p>';
+                rightPanel.innerHTML = '<p style="text-align: center; padding: 60px; color: #718096;">Create projects and goals in the Dashboard.</p>';
+                return;
+            }
+
+            if (currentView === 'month') {
+                projects.forEach(project => createMonthlyViewRows(project, leftPanel, rightPanel));
+            } else {
+                projects.forEach(project => createProjectSection(project, leftPanel, rightPanel));
+            }
+
+            // Synchronize heights after rendering
+            setTimeout(() => synchronizeRowHeights(), 100);
+        }
+
+        // Synchronize heights between left and right panels
+        function synchronizeRowHeights() {
+            const leftPanel = document.getElementById('leftPanelContent');
+            const rightPanel = document.getElementById('rightPanelContent');
+
+            const leftChildren = Array.from(leftPanel.children);
+            const rightChildren = Array.from(rightPanel.children);
+
+            // Monthly-goal bars are absolutely positioned, so their own offsetHeight only
+            // reports one bar. Keep the lane height calculated during rendering instead.
+            rightChildren.forEach(rightChild => {
+                if (rightChild.classList.contains('timeline')) {
+                    const requiredHeight = Number(rightChild.dataset.requiredHeight) || 58;
+                    rightChild.style.minHeight = requiredHeight + 'px';
+                    rightChild.style.height = requiredHeight + 'px';
+                }
+            });
+
+            // Then match corresponding rows and synchronize heights
+            for (let i = 0; i < leftChildren.length && i < rightChildren.length; i++) {
+                const leftChild = leftChildren[i];
+                const rightChild = rightChildren[i];
+
+                // Reset heights first
+                leftChild.style.height = 'auto';
+                rightChild.style.height = rightChild.classList.contains('timeline')
+                    ? `${Number(rightChild.dataset.requiredHeight) || 58}px`
+                    : 'auto';
+
+                // Get natural heights
+                const leftHeight = leftChild.offsetHeight;
+                const rightHeight = rightChild.offsetHeight;
+
+                // Set both to the maximum height
+                const maxHeight = Math.max(leftHeight, rightHeight);
+                leftChild.style.height = maxHeight + 'px';
+                rightChild.style.height = maxHeight + 'px';
+            }
+        }
+
+        // Create project section
+        function createProjectSection(project, leftPanel, rightPanel) {
+            // Project title in left panel
+            const titleLeft = document.createElement('div');
+            titleLeft.className = 'project-title';
+            titleLeft.textContent = project.name;
+            titleLeft.onclick = () => openProjectEditModal(project);
+            titleLeft.style.cursor = 'pointer';
+            leftPanel.appendChild(titleLeft);
+
+            // Project title spacer in right panel (for alignment)
+            const titleRight = document.createElement('div');
+            titleRight.className = 'project-title';
+            titleRight.style.visibility = 'hidden';
+            titleRight.style.pointerEvents = 'none';
+            titleRight.textContent = '\u00A0'; // Non-breaking space
+            rightPanel.appendChild(titleRight);
+
+            // Add annual goal rows
+            project.annual_goals.forEach(annualGoal => {
+                createAnnualGoalRow(project, annualGoal, leftPanel, rightPanel);
+            });
+        }
+
+        // Month view intentionally uses monthly goals as the left-hand rows.
+        // The timeline then shows their weekly goals, positioned by task dates.
+        function createMonthlyViewRows(project, leftPanel, rightPanel) {
+            project.annual_goals.forEach(annualGoal => {
+                getVisibleMonthlyGoals(annualGoal.monthly_goals).forEach(monthlyGoal => {
+                    createMonthlyGoalRow(monthlyGoal, leftPanel, rightPanel);
+                });
+            });
+        }
+
+        function createMonthlyGoalRow(monthlyGoal, leftPanel, rightPanel) {
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'monthly-goal-name';
+            nameDiv.textContent = monthlyGoal.name;
+            nameDiv.onclick = () => showMonthlyGoalModal(monthlyGoal);
+            leftPanel.appendChild(nameDiv);
+
+            const timeline = document.createElement('div');
+            timeline.className = 'timeline';
+            const visibleWeeklyGoals = getVisibleWeeklyGoals(monthlyGoal.weekly_goals || []);
+
+            if (visibleWeeklyGoals.length === 0) {
+                const noActivityDiv = document.createElement('div');
+                noActivityDiv.className = 'no-activity-line';
+                noActivityDiv.style.left = '0';
+                noActivityDiv.style.width = '100%';
+                noActivityDiv.textContent = 'No task dates for weekly goals';
+                timeline.appendChild(noActivityDiv);
+                timeline.dataset.requiredHeight = '58';
+            } else {
+                const lanes = assignGoalLanes(visibleWeeklyGoals);
+                const laneCount = Math.max(...lanes.values()) + 1;
+                const requiredHeight = Math.max(58, laneCount * 52 + 8);
+                timeline.dataset.requiredHeight = String(requiredHeight);
+                timeline.style.minHeight = `${requiredHeight}px`;
+                timeline.style.height = `${requiredHeight}px`;
+                visibleWeeklyGoals.forEach(weeklyGoal => {
+                    timeline.appendChild(createWeeklyGoalBar(weeklyGoal, lanes.get(weeklyGoal.id)));
+                });
+            }
+
+            rightPanel.appendChild(timeline);
+        }
+
+        // Create annual goal row
+        function createAnnualGoalRow(project, annualGoal, leftPanel, rightPanel) {
+            // Goal name in left panel
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'annual-goal-name';
+            nameDiv.textContent = annualGoal.name;
+            nameDiv.onclick = () => openAnnualGoalEditModal(annualGoal);
+            leftPanel.appendChild(nameDiv);
+
+            // Timeline in right panel
+            const timeline = document.createElement('div');
+            timeline.className = 'timeline';
+
+            const visibleGoals = getVisibleMonthlyGoals(annualGoal.monthly_goals);
+            if (visibleGoals.length === 0) {
+                // No milestone intersects with the selected period.
+                const noActivityDiv = document.createElement('div');
+                noActivityDiv.className = 'no-activity-line';
+                noActivityDiv.style.left = '0';
+                noActivityDiv.style.width = '100%';
+                noActivityDiv.textContent = 'No milestone in this period';
+                timeline.appendChild(noActivityDiv);
+                timeline.dataset.requiredHeight = '58';
+            } else {
+                const lanes = assignGoalLanes(visibleGoals);
+                const laneCount = Math.max(...lanes.values()) + 1;
+                const requiredHeight = Math.max(58, laneCount * 58 + 8);
+                timeline.dataset.requiredHeight = String(requiredHeight);
+                timeline.style.minHeight = `${requiredHeight}px`;
+                timeline.style.height = `${requiredHeight}px`;
+                visibleGoals.forEach(monthlyGoal => {
+                    const goalDiv = createMonthlyGoalBar(monthlyGoal, lanes.get(monthlyGoal.id));
+                    timeline.appendChild(goalDiv);
+                });
+            }
+
+            rightPanel.appendChild(timeline);
+        }
+
+        // Create monthly goal bar
+        function createMonthlyGoalBar(monthlyGoal, laneIndex) {
+            const div = document.createElement('div');
+            div.className = `month-goal ${monthlyGoal.status}`;
+
+            const startDate = parseGoalDate(monthlyGoal.start_date);
+            const endDate = parseGoalDate(monthlyGoal.end_date);
+            const range = getTimelineRange();
+            const visibleStart = startDate < range.start ? range.start : startDate;
+            const visibleEnd = endDate > range.end ? range.end : endDate;
+            const rangeDays = daysBetween(range.start, range.end) + 1;
+            const startPercent = (daysBetween(range.start, visibleStart) / rangeDays) * 100;
+            const widthPercent = ((daysBetween(visibleStart, visibleEnd) + 1) / rangeDays) * 100;
+
+            div.style.left = `${startPercent}%`;
+            div.style.width = `${widthPercent}%`;
+            div.style.top = `${laneIndex * 58 + 5}px`;
+            div.textContent = monthlyGoal.name;
+
+            // Tooltip
+            const tooltip = document.createElement('div');
+            tooltip.className = 'month-tooltip';
+            const formattedStart = startDate.toLocaleDateString();
+            const formattedEnd = endDate.toLocaleDateString();
+            tooltip.innerHTML = `${monthlyGoal.name}<br>${formattedStart} - ${formattedEnd}<br>Status: ${monthlyGoal.status}<br>Click for options`;
+            div.appendChild(tooltip);
+
+            // Click handler - show modal instead of jumping to report
+            div.onclick = (e) => {
+                e.stopPropagation();
+                showMonthlyGoalModal(monthlyGoal);
+            };
+
+            return div;
+        }
+
+        function createWeeklyGoalBar(weeklyGoal, laneIndex) {
+            const div = document.createElement('div');
+            div.className = `week-goal ${weeklyGoal.status}`;
+
+            const taskRange = getWeeklyTaskRange(weeklyGoal);
+            const range = getTimelineRange();
+            const visibleStart = taskRange.start < range.start ? range.start : taskRange.start;
+            const visibleEnd = taskRange.end > range.end ? range.end : taskRange.end;
+            const rangeDays = daysBetween(range.start, range.end) + 1;
+            const startPercent = (daysBetween(range.start, visibleStart) / rangeDays) * 100;
+            const widthPercent = ((daysBetween(visibleStart, visibleEnd) + 1) / rangeDays) * 100;
+
+            div.style.left = `${startPercent}%`;
+            div.style.width = `${widthPercent}%`;
+            div.style.top = `${laneIndex * 52 + 5}px`;
+            div.textContent = weeklyGoal.name;
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'month-tooltip';
+            tooltip.innerHTML = `${weeklyGoal.name}<br>Task dates: ${taskRange.start.toLocaleDateString()} - ${taskRange.end.toLocaleDateString()}<br>Status: ${weeklyGoal.status}`;
+            div.appendChild(tooltip);
+
+            return div;
+        }
+
+        // Modal functions
+        function showMonthlyGoalModal(monthlyGoal) {
+            selectedMonthlyGoal = monthlyGoal;
+            const modal = document.getElementById('monthlyGoalModal');
+            const startDate = new Date(monthlyGoal.start_date).toLocaleDateString();
+            const endDate = new Date(monthlyGoal.end_date).toLocaleDateString();
+
+            document.getElementById('modalGoalName').textContent = monthlyGoal.name;
+            document.getElementById('modalDateRange').textContent = `${startDate} - ${endDate}`;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('monthlyGoalModal').style.display = 'none';
+            selectedMonthlyGoal = null;
+        }
+
+        // Update goal status
+        async function updateGoalStatus(newStatus) {
+            if (!selectedMonthlyGoal) return;
+
+            try {
+                await api.updateMonthlyGoalStatus(selectedMonthlyGoal.id, newStatus);
+                closeModal();
+                await loadGanttData();  // Refresh chart to show new color
+                showSuccess(`Status updated to "${newStatus}"!`);
+            } catch (error) {
+                console.error('Error updating status:', error);
+                showError('Failed to update status: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function editMonthlyGoalTimeRange() {
+            if (!selectedMonthlyGoal) return;
+
+            const currentStart = selectedMonthlyGoal.start_date;
+            const currentEnd = selectedMonthlyGoal.end_date;
+
+            const newStartDate = prompt('Enter new start date (YYYY-MM-DD):', currentStart);
+            if (!newStartDate || newStartDate === currentStart) {
+                if (newStartDate === null) return; // User cancelled
+            }
+
+            const newEndDate = prompt('Enter new end date (YYYY-MM-DD):', currentEnd);
+            if (!newEndDate || newEndDate === currentEnd) {
+                if (newEndDate === null) return; // User cancelled
+            }
+
+            // Validate dates
+            if (!isValidDate(newStartDate) || !isValidDate(newEndDate)) {
+                showError('Invalid date format. Use YYYY-MM-DD');
+                return;
+            }
+
+            if (new Date(newEndDate) < new Date(newStartDate)) {
+                showError('End date must be after start date');
+                return;
+            }
+
+            try {
+                // Update via API (we need to add an update endpoint)
+                await api.updateMonthlyGoal(selectedMonthlyGoal.id, {
+                    start_date: newStartDate,
+                    end_date: newEndDate
+                });
+
+                closeModal();
+                await loadGanttData(); // Reload chart
+                showSuccess('Time range updated successfully!');
+            } catch (error) {
+                console.error('Error updating monthly goal:', error);
+                showError('Failed to update time range: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        function viewMonthlyGoalReport() {
+            if (!selectedMonthlyGoal) return;
+
+            // Navigate to reports page with custom date range
+            const startDate = selectedMonthlyGoal.start_date;
+            const endDate = selectedMonthlyGoal.end_date;
+            window.location.href = `reports.html?start=${startDate}&end=${endDate}&goal=${selectedMonthlyGoal.id}`;
+        }
+
+        function isValidDate(dateString) {
+            const regex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!regex.test(dateString)) return false;
+            const date = new Date(dateString);
+            return date instanceof Date && !isNaN(date);
+        }
+
+        function showSuccess(message) {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #48bb78; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // Helper functions
+        function getCurrentWeekNumber() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 1);
+            const diff = now - start;
+            const oneWeek = 1000 * 60 * 60 * 24 * 7;
+            return Math.ceil(diff / oneWeek);
+        }
+
+        function showError(message) {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #f56565; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 4000);
+        }
+
+        // Zoom functions
+        const YEAR_BASE_WIDTH = 2000;
+        const MONTH_BASE_WIDTH = 1200;
+
+        function applyZoom() {
+            const ganttContainer = document.querySelector('.gantt-container');
+            const rightPanel = document.getElementById('rightPanel');
+
+            // Calculate new width based on zoom level
+            const baseWidth = currentView === 'month' ? MONTH_BASE_WIDTH : YEAR_BASE_WIDTH;
+            const newWidth = baseWidth * currentZoom;
+
+            if (ganttContainer) {
+                ganttContainer.style.minWidth = `${newWidth}px`;
+            }
+
+            // Scroll to left edge to ensure January is visible after zoom change
+            if (rightPanel) {
+                rightPanel.scrollLeft = 0;
+            }
+        }
+
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 0.1, 2.0);
+            applyZoom();
+            setTimeout(() => synchronizeRowHeights(), 50);
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 0.1, 0.5);
+            applyZoom();
+            setTimeout(() => synchronizeRowHeights(), 50);
+        }
+
+        function resetZoom() {
+            currentZoom = 1.0;
+            applyZoom();
+            setTimeout(() => synchronizeRowHeights(), 50);
+        }
+
+        async function setView(view) {
+            if (view === currentView) return;
+            currentView = view;
+            updatePeriodLabel();
+            renderTimelineHeader();
+            applyZoom();
+            await loadGanttData();
+        }
+
+        async function changePeriod(delta) {
+            if (currentView === 'year') {
+                currentYear += delta;
+            } else {
+                const nextPeriod = new Date(currentYear, currentMonth + delta, 1);
+                currentYear = nextPeriod.getFullYear();
+                currentMonth = nextPeriod.getMonth();
+            }
+            updatePeriodLabel();
+            renderTimelineHeader();
+            await loadGanttData();
+        }
+
+        // Navigation functions
+        function jumpToMonthlyReport(goalId) {
+            window.location.href = `reports.html#${goalId}`;
+        }
+
+        function jumpToAnnualGoalReport(goalId) {
+            window.location.href = `reports.html#${goalId}`;
+        }
+
+        function jumpToAnnualReport(projectId) {
+            window.location.href = `reports.html#${projectId}`;
+        }
+
+        // Vertical resize handle functionality
+        (function initResizeHandle() {
+            const resizeHandle = document.getElementById('resizeHandle');
+            const ganttContainer = document.getElementById('ganttSplitContainer');
+            let isResizing = false;
+            let startY = 0;
+            let startHeight = 0;
+
+            resizeHandle.addEventListener('mousedown', function(e) {
+                isResizing = true;
+                startY = e.clientY;
+                startHeight = ganttContainer.offsetHeight;
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none';
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isResizing) return;
+
+                const deltaY = e.clientY - startY;
+                const newHeight = startHeight + deltaY;
+
+                // Enforce minimum and maximum heights
+                if (newHeight >= 300 && newHeight <= 1200) {
+                    ganttContainer.style.height = newHeight + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', function() {
+                if (isResizing) {
+                    isResizing = false;
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
+        })();
+
+        // Scroll synchronization between left and right panels
+        (function initScrollSync() {
+            const leftPanel = document.getElementById('leftPanel');
+            const rightPanel = document.getElementById('rightPanel');
+            let isSyncingLeft = false;
+            let isSyncingRight = false;
+
+            leftPanel.addEventListener('scroll', function() {
+                if (isSyncingLeft) return;
+                isSyncingRight = true;
+                rightPanel.scrollTop = leftPanel.scrollTop;
+                setTimeout(() => { isSyncingRight = false; }, 0);
+            });
+
+            rightPanel.addEventListener('scroll', function() {
+                if (isSyncingRight) return;
+                isSyncingLeft = true;
+                leftPanel.scrollTop = rightPanel.scrollTop;
+                setTimeout(() => { isSyncingLeft = false; }, 0);
+            });
+        })();
+
+        // Handle window resize to re-synchronize row heights
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (typeof synchronizeRowHeights === 'function') {
+                    synchronizeRowHeights();
+                }
+            }, 200);
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>

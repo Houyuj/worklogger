@@ -1,0 +1,3877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Logger - Daily Records</title>
+    <style>
+        :root {
+            --page-bg: #f4f6f5;
+            --surface: #ffffff;
+            --surface-muted: #f1f5f3;
+            --text: #27383d;
+            --text-muted: #64757a;
+            --border: #d7e1de;
+            --primary: #58728f;
+            --primary-strong: #47627e;
+            --success: #4f806f;
+            --success-strong: #3f6d5d;
+            --management: #6d837a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--page-bg);
+            color: var(--text);
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .user-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .nav-tabs {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-tab {
+            padding: 15px 25px;
+            text-decoration: none;
+            color: var(--text-muted);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .nav-tab:hover {
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .add-todo-card {
+            background: var(--surface);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 12px rgba(39, 56, 61, 0.06);
+            border: 1px solid #aab9c4;
+        }
+
+        .add-todo-card h2 {
+            margin-bottom: 20px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-add {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .divider,
+        #toggleBtn,
+        #detailedForm {
+            display: none !important;
+        }
+
+        .quick-protocol-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #52656a;
+            font-size: 0.92em;
+        }
+
+        .quick-protocol-row label {
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .quick-protocol-picker {
+            position: relative;
+            display: flex;
+            width: min(410px, 100%);
+        }
+
+        .quick-protocol-picker input[type="text"] {
+            width: 100%;
+            padding: 9px 40px 9px 11px;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            font: inherit;
+            color: var(--text);
+            background: #fff;
+        }
+
+        .quick-protocol-picker input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(78, 109, 164, 0.10);
+        }
+
+        .quick-protocol-toggle {
+            position: absolute;
+            right: 1px;
+            top: 1px;
+            bottom: 1px;
+            width: 36px;
+            border: 0;
+            border-left: 1px solid #e2e8f0;
+            border-radius: 0 6px 6px 0;
+            background: transparent;
+            color: #64757a;
+            font-size: 1.1em;
+            cursor: pointer;
+        }
+
+        .quick-protocol-menu {
+            position: absolute;
+            z-index: 200;
+            top: calc(100% + 6px);
+            left: 0;
+            right: 0;
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 5px;
+            border: 1px solid #d5e1dc;
+            border-radius: 9px;
+            background: #fff;
+            box-shadow: 0 10px 25px rgba(39, 56, 61, 0.14);
+        }
+
+        .quick-protocol-menu-item {
+            display: block;
+            width: 100%;
+            padding: 10px 11px;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text);
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .quick-protocol-menu-item:hover,
+        .quick-protocol-menu-item:focus {
+            outline: none;
+            background: #edf5f1;
+        }
+
+        .quick-protocol-create {
+            margin-bottom: 4px;
+            border-bottom: 1px solid #dbe8e2;
+            border-radius: 6px 6px 0 0;
+            color: #386255;
+            font-weight: 700;
+        }
+
+        .quick-protocol-empty {
+            padding: 10px 11px;
+            color: #77868b;
+            font-size: 0.92em;
+        }
+
+        .quick-copy-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64757a;
+            white-space: nowrap;
+        }
+
+        .quick-add input {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .quick-add input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border-radius: 8px;
+            border: none;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-strong);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(71, 98, 126, 0.22);
+        }
+
+        .btn-secondary {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: var(--success-strong);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(63, 109, 93, 0.20);
+        }
+
+        .divider {
+            text-align: center;
+            color: var(--text-muted);
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider:before,
+        .divider:after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider:before {
+            left: 0;
+        }
+
+        .divider:after {
+            right: 0;
+        }
+
+        .detailed-form {
+            display: none;
+            padding-top: 20px;
+        }
+
+        .detailed-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #44585e;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .tags-section {
+            background: var(--surface-muted);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tags-section h4 {
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+
+        .tag-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .tag-select {
+            position: relative;
+        }
+
+        .planning-workspace {
+            background: #fbfcfb;
+            border: 1px solid #8aa79d;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 3px 10px rgba(61, 94, 84, 0.08);
+        }
+
+        .planning-workspace h2 {
+            margin-bottom: 6px;
+            color: #365c52;
+        }
+
+        .planning-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .planning-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .planning-grid .form-group {
+            margin-bottom: 0;
+        }
+
+        .planning-grid .btn {
+            width: 100%;
+            padding: 12px 14px;
+        }
+
+        .plan-builder {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            padding-top: 18px;
+            border-top: 1px solid #d8e4df;
+        }
+
+        .plan-builder-item {
+            background: #f6f9f7;
+            border: 1px solid #d8e4df;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .plan-builder-item h3 {
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            color: #3d5055;
+        }
+
+        .plan-builder-item input,
+        .plan-builder-item select {
+            width: 100%;
+            margin-bottom: 8px;
+            padding: 9px 10px;
+            border: 1px solid #cddbd6;
+            border-radius: 5px;
+            font: inherit;
+        }
+
+        .plan-builder-item button {
+            width: 100%;
+            padding: 9px 10px;
+            border: 0;
+            border-radius: 5px;
+            background: var(--success);
+            color: white;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .management-card {
+            border-color: #b3c1ba;
+        }
+
+        .management-toggle {
+            background: var(--management) !important;
+            color: white;
+        }
+
+        .management-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin: 20px 0 14px;
+        }
+
+        .management-toolbar p {
+            color: var(--text-muted);
+            font-size: 0.92em;
+        }
+
+        .management-new-btn,
+        .management-node-btn {
+            border: 1px solid #9eb4ad;
+            border-radius: 6px;
+            background: #f4f8f6;
+            color: #365c52;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 600;
+        }
+
+        .management-new-btn {
+            padding: 9px 13px;
+            white-space: nowrap;
+        }
+
+        .management-node-btn {
+            padding: 5px 8px;
+            font-size: 0.8em;
+        }
+
+        .management-new-btn:hover,
+        .management-node-btn:hover {
+            background: #e5f0eb;
+            border-color: #6f9d90;
+        }
+
+        .management-toggle:focus,
+        .management-new-btn:focus,
+        .management-node-btn:focus {
+            outline: 2px solid #91aaa1;
+            outline-offset: 2px;
+        }
+
+        .management-create-panel {
+            margin: 0 0 16px;
+            padding: 16px;
+            border: 1px solid #b8cbc4;
+            border-radius: 9px;
+            background: #f7faf8;
+        }
+
+        .management-create-panel h3 {
+            margin-bottom: 5px;
+            color: #365c52;
+            font-size: 1em;
+        }
+
+        .management-create-panel p {
+            margin-bottom: 13px;
+            color: var(--text-muted);
+            font-size: 0.87em;
+        }
+
+        .management-create-fields {
+            display: grid;
+            grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(130px, 1fr));
+            gap: 10px;
+            align-items: end;
+        }
+
+        .management-create-fields label {
+            display: block;
+            margin-bottom: 5px;
+            color: #44585e;
+            font-size: 0.82em;
+            font-weight: 600;
+        }
+
+        .management-create-fields input {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid #cddbd6;
+            border-radius: 6px;
+            background: white;
+            font: inherit;
+        }
+
+        .management-create-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .management-create-actions button {
+            padding: 9px 12px;
+            border: 0;
+            border-radius: 6px;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 600;
+        }
+
+        .management-create-actions .save {
+            background: var(--success);
+            color: white;
+        }
+
+        .management-create-actions .cancel {
+            background: #e5ece9;
+            color: #44585e;
+        }
+
+        .management-tree {
+            padding: 2px 0;
+            background: transparent;
+        }
+
+        .management-node {
+            margin: 0;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .management-node.archived {
+            opacity: 0.68;
+        }
+
+        .management-node-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 46px;
+            padding: 9px 12px;
+        }
+
+        .management-node-title {
+            min-width: 0;
+            color: #2e4248;
+            font-weight: 600;
+        }
+
+        .management-node-meta {
+            margin-left: 6px;
+            color: #71858a;
+            font-size: 0.88em;
+            font-weight: 400;
+        }
+
+        .management-node-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .management-node-children {
+            margin: 0 0 0 24px;
+            padding: 0;
+            border: 0;
+        }
+
+        .management-status-select {
+            width: auto !important;
+            min-width: 124px;
+            padding: 5px 8px;
+            border: 1px solid #cbd8d3;
+            border-radius: 6px;
+            background: white;
+            color: #52656a;
+            font: inherit;
+            font-size: 0.82em;
+        }
+
+        .management-node--project > .management-node-row {
+            margin: 4px 0 2px;
+            padding-left: 4px;
+            border-bottom: 1px solid #d9e4df;
+        }
+
+        .management-node--project > .management-node-row .management-node-title {
+            font-size: 1.06em;
+        }
+
+        .management-node--annual > .management-node-row {
+            margin-top: 5px;
+            border-radius: 6px;
+            background: #f0f7f3;
+            color: #365c52;
+        }
+
+        .management-node--monthly > .management-node-row {
+            margin-top: 3px;
+            border-radius: 6px;
+            background: #e2f0e9;
+            color: #2f6252;
+        }
+
+        .management-node--weekly > .management-node-row {
+            min-height: 40px;
+            padding-top: 7px;
+            padding-bottom: 7px;
+            margin-top: 3px;
+            border-radius: 6px;
+            background: #d2e6dc;
+            color: #285b4c;
+        }
+
+        .management-node--weekly .management-node-title {
+            font-weight: 500;
+        }
+
+        .management-assignment-target {
+            cursor: pointer;
+        }
+
+        .management-assignment-target:hover {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .management-node--annual .management-node-meta,
+        .management-node--monthly .management-node-meta,
+        .management-node--weekly .management-node-meta {
+            color: inherit;
+            opacity: 0.68;
+        }
+
+        @media (max-width: 800px) {
+            .management-toolbar,
+            .management-node-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .management-create-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .management-node-actions {
+                justify-content: flex-start;
+            }
+        }
+
+        .inbox-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .tag-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .tag-badge.annual {
+            background: #fef5e7;
+            color: #7c2d12;
+            border: 2px solid #f59e0b;
+        }
+
+        .tag-badge.monthly {
+            background: #dbeafe;
+            color: #1e3a8a;
+            border: 2px solid #3b82f6;
+        }
+
+        .tag-badge.weekly {
+            background: #dcfce7;
+            color: #14532d;
+            border: 2px solid #22c55e;
+        }
+
+        .auto-label {
+            font-size: 0.75em;
+            color: #718096;
+            margin-left: 5px;
+        }
+
+        /* Consistent dropdown styling across all forms */
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            font-family: inherit;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select:hover {
+            border-color: #cbd5e0;
+        }
+
+        /* Ensure modal and tag section selects match */
+        .modal-content select,
+        .tags-section select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .todo-list-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .date-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .date-header h3 {
+            color: #2d3748;
+        }
+
+        .todo-item {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+
+        .todo-item:hover {
+            background: #edf2f7;
+            transform: translateX(5px);
+        }
+
+        .todo-item.completed {
+            opacity: 0.7;
+            border-left-color: #48bb78;
+        }
+
+        .todo-item.pending {
+            border-left-color: #ed8936;
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border: 2px solid #cbd5e0;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+        }
+
+        .checkbox.checked {
+            background: #48bb78;
+            border-color: #48bb78;
+            color: white;
+        }
+
+        .todo-content {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .todo-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .todo-item.completed .todo-title {
+            text-decoration: line-through;
+            color: #718096;
+        }
+
+        .todo-description {
+            color: #718096;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .todo-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            width: 34px;
+            height: 34px;
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 5px;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 0.85em;
+            padding: 0;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            background: #e0f2fe;
+            border-color: #7dd3fc;
+        }
+
+        .action-btn.delete-task {
+            color: #dc2626;
+        }
+
+        .action-btn.delete-task:hover {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .experiment-link {
+            background: #e6fffa;
+            border: 2px dashed #38b2ac;
+            color: #234e52;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stats-summary {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f3f7f5;
+            border-radius: 8px;
+            border: 1px solid #d7e1de;
+            flex-wrap: nowrap;
+            align-items: center;
+        }
+
+        .search-filter-bar input[type="text"] {
+            flex: 1;
+            min-width: 220px;
+            padding: 9px 11px;
+            border: 1px solid #cddbd6;
+            border-radius: 7px;
+            font-size: 1em;
+        }
+
+        .search-filter-bar input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-filter-bar select {
+            width: auto !important;
+            flex: 0 1 150px;
+            padding: 9px 10px;
+            border: 1px solid #cddbd6;
+            border-radius: 7px;
+            font-size: 1em;
+            background: white;
+        }
+
+        .search-filter-bar select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .filter-btn {
+            padding: 9px 12px;
+            border-radius: 7px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.apply {
+            background: #667eea;
+            color: white;
+        }
+
+        .filter-btn.apply:hover {
+            background: #5568d3;
+        }
+
+        .filter-btn.clear {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .filter-btn.clear:hover {
+            background: #cbd5e0;
+        }
+
+        .task-selection-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 36px;
+            margin: 0 0 16px;
+            color: #64757a;
+            font-size: 0.9em;
+        }
+
+        .task-selection-bar button {
+            padding: 7px 10px;
+            border: 1px solid #a8beb6;
+            border-radius: 6px;
+            background: white;
+            color: #365c52;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 600;
+        }
+
+        .task-selection-bar button.active {
+            background: #e1eee8;
+            border-color: #6f9d90;
+        }
+
+        .task-selection-count {
+            color: #365c52;
+            font-weight: 600;
+        }
+
+        .current-week-goals {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: -4px 0 18px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: #f1f7f4;
+        }
+
+        .current-week-goals-label {
+            color: #52656a;
+            font-size: 0.88em;
+            font-weight: 600;
+            margin-right: 2px;
+        }
+
+        .weekly-goal-chip {
+            padding: 6px 10px;
+            border: 1px solid #b4cbc1;
+            border-radius: 999px;
+            background: white;
+            color: #365c52;
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.86em;
+            font-weight: 600;
+        }
+
+        .weekly-goal-chip:disabled {
+            opacity: 0.62;
+            cursor: default;
+        }
+
+        .weekly-goal-chip:not(:disabled):hover {
+            background: #dcece4;
+            border-color: #6f9d90;
+        }
+
+        .task-selection-checkbox {
+            width: 19px;
+            height: 19px;
+            margin-top: 4px;
+            accent-color: #4f806f;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1050px) {
+            .search-filter-bar {
+                flex-wrap: wrap;
+            }
+        }
+
+        .nav-btn {
+            padding: 8px 15px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #5568d3;
+        }
+
+        .stat-icon {
+            font-size: 1.5em;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.3em;
+            color: #2d3748;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #718096;
+        }
+
+        /* Edit Task Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-header h3 {
+            color: #2d3748;
+            font-size: 1.3em;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8em;
+            cursor: pointer;
+            color: #718096;
+            transition: color 0.3s;
+        }
+
+        .close-btn:hover {
+            color: #e53e3e;
+        }
+
+        .experiment-selection-item {
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid #e2e8f0;
+        }
+
+        .experiment-selection-item:hover {
+            background: #edf2f7;
+            border-color: #667eea;
+            transform: translateX(5px);
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 12px 16px;
+                gap: 10px;
+            }
+
+            .logo {
+                font-size: 1.25em;
+                max-width: 130px;
+            }
+
+            .user-menu {
+                margin-left: auto;
+                gap: 8px;
+            }
+
+            .user-menu select {
+                margin-right: 0 !important;
+                max-width: 76px;
+            }
+
+            .nav-tabs {
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .nav-tab {
+                padding: 14px 18px;
+            }
+
+            .container {
+                padding: 18px 14px;
+            }
+
+            .quick-add,
+            .date-header,
+            .date-nav,
+            .tag-row {
+                flex-direction: column;
+                align-items: stretch !important;
+            }
+
+            .quick-add input,
+            .quick-add button,
+            .quick-add input[type="date"],
+            .date-nav input[type="date"],
+            .date-nav button {
+                width: 100% !important;
+                flex: none !important;
+                margin-left: 0 !important;
+            }
+
+            .date-nav {
+                gap: 8px !important;
+            }
+
+            .date-header h3 {
+                font-size: 1.05em;
+            }
+
+            .tag-select {
+                width: 100%;
+            }
+
+            .planning-grid,
+            .plan-builder {
+                grid-template-columns: 1fr;
+            }
+
+            .todo-item {
+                padding: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📊 Work Logger</div>
+        <div class="user-menu">
+            <select id="yearSelector" onchange="onYearChange()" style="padding: 8px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em; margin-right: 20px; background: white; cursor: pointer;">
+                <!-- Years will be populated dynamically -->
+            </select>
+            <span>🔔</span>
+            <span>👤 User</span>
+            <span>⚙️</span>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <a href="dashboard.html" class="nav-tab active">Today</a>
+        <a href="reports.html" class="nav-tab">Reports</a>
+        <a href="gantt.html" class="nav-tab">Gantt</a>
+        <a href="experiments.html" class="nav-tab">Protocols</a>
+        <a href="index.html" class="nav-tab">← Back to Index</a>
+    </div>
+
+    <div class="container">
+        <!-- Add To-Do Section -->
+        <div class="add-todo-card">
+            <h2>📝 Add To-Do Item</h2>
+
+            <!-- Quick Add -->
+            <div class="quick-add">
+                <input type="text" placeholder="Quick add: Type a simple task and press Enter..." id="quickInput" style="flex: 2;">
+                <input type="date" id="quickDateInput" style="flex: 0 0 150px; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                <button class="btn btn-primary" onclick="addQuickTodo()">Add</button>
+            </div>
+
+            <div class="quick-protocol-row">
+                <label for="quickProtocolInput">Link to Protocol (Optional)</label>
+                <div class="quick-protocol-picker" id="quickProtocolPicker">
+                    <input id="quickProtocolInput" type="text" autocomplete="off" placeholder="Search by Protocol title" onfocus="openQuickProtocolMenu()" oninput="filterQuickProtocolMenu()">
+                    <button class="quick-protocol-toggle" type="button" onclick="toggleQuickProtocolMenu()" aria-label="Show Protocol options">⌄</button>
+                    <div class="quick-protocol-menu" id="quickProtocolMenu" style="display: none;"></div>
+                </div>
+                <label id="quickCopyOption" class="quick-copy-option" title="Create an editable copy after saving the task"><input id="quickDuplicateProtocolOnCreate" type="checkbox"> Create a copy</label>
+            </div>
+
+            <div class="divider">OR</div>
+
+            <button class="btn btn-secondary" onclick="toggleDetailedForm()" id="toggleBtn">
+                🧪 Create Detailed Task / Link to Protocol
+            </button>
+
+            <!-- Detailed Form (Initially Hidden) -->
+            <div class="detailed-form" id="detailedForm">
+                <div class="form-group">
+                    <label>Task Title</label>
+                    <input type="text" id="detailedTitle" placeholder="e.g., Complete authentication module">
+                </div>
+
+                <div class="form-group">
+                    <label>Description (Optional)</label>
+                    <textarea id="detailedDescription" placeholder="Add more details about this task..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Task Date</label>
+                    <input type="date" id="detailedDate" style="width: 100%; padding: 12px 15px; border: 2px solid #e2e8f0; border-radius: 8px;">
+                </div>
+
+                <div class="tag-row">
+                    <div class="tag-select">
+                        <label>Priority</label>
+                        <select id="detailedPriority">
+                            <option value="high">High</option>
+                            <option value="normal" selected>Normal</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="tag-select">
+                        <label>Work status</label>
+                        <select id="detailedWorkflowStatus">
+                            <option value="todo" selected>To do</option>
+                            <option value="blocked">Blocked</option>
+                            <option value="waiting">Waiting</option>
+                        </select>
+                    </div>
+                    <div class="tag-select"></div>
+                </div>
+
+                <div class="tags-section">
+                    <h4>🏷️ Goal Tags</h4>
+                    <div class="tag-row">
+                        <div class="tag-select">
+                            <label>Project <span class="auto-label">(Select)</span></label>
+                            <select id="projectSelect" onchange="onProjectChange(this)">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                        <div class="tag-select">
+                            <label>Annual Goal <span class="auto-label">(Auto-filled)</span></label>
+                            <select id="annualGoalSelect" onchange="onAnnualGoalChange(this)">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                        <div class="tag-select">
+                            <label>Monthly Goal <span class="auto-label">(Auto-filled)</span></label>
+                            <select id="monthlyGoalSelect" onchange="onMonthlyGoalChange(this)">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="tag-row" style="margin-top: 15px;">
+                        <div class="tag-select">
+                            <label>Weekly Goal <span class="auto-label">(Manual)</span></label>
+                            <select id="weeklyGoalSelect" onchange="onWeeklyGoalChange(this)">
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+                        <div class="tag-select"></div>
+                        <div class="tag-select"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Link to Protocol (Optional)</label>
+                    <select id="experimentSelect">
+                        <option value="">Loading...</option>
+                    </select>
+                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 10px; font-weight: 500;">
+                        <input type="checkbox" id="duplicateProtocolOnCreate">
+                        Create a copy for this task, then open it for editing
+                    </label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn" style="background: #e2e8f0; color: #4a5568;" onclick="toggleDetailedForm()">Cancel</button>
+                    <button class="btn btn-primary" id="addDetailedTaskButton" onclick="addDetailedTask()">Add Task</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Task Modal -->
+        <div id="editTaskModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>✏️ Edit Task</h3>
+                    <button class="close-btn" onclick="closeEditModal()">&times;</button>
+                </div>
+                <form id="editTaskForm" onsubmit="saveEditedTask(event)">
+                    <input type="hidden" id="editTaskId">
+                    <div class="form-group">
+                        <label>Task Title</label>
+                        <input type="text" id="editTaskTitle" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Description (Optional)</label>
+                        <textarea id="editTaskDescription" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Task Date</label>
+                        <input type="date" id="editTaskDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Goal</label>
+                        <select id="editMonthlyGoalSelect">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Weekly Goal</label>
+                        <select id="editWeeklyGoalSelect">
+                            <option value="">None</option>
+                        </select>
+                    </div>
+                    <div class="tag-row">
+                        <div class="tag-select">
+                            <label>Priority</label>
+                            <select id="editTaskPriority">
+                                <option value="high">High</option>
+                                <option value="normal">Normal</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
+                        <div class="tag-select">
+                            <label>Work status</label>
+                            <select id="editTaskWorkflowStatus">
+                                <option value="todo">To do</option>
+                                <option value="blocked">Blocked</option>
+                                <option value="waiting">Waiting</option>
+                            </select>
+                        </div>
+                        <div class="tag-select"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Link to Protocol (Optional)</label>
+                        <select id="editExperimentSelect">
+                            <option value="">None - Simple task</option>
+                        </select>
+                    </div>
+                    <div class="button-group">
+                        <button type="button" class="btn" style="background: #e2e8f0; color: #4a5568;" onclick="closeEditModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Management Section -->
+        <div class="add-todo-card management-card">
+            <h2>🗂️ Manage Projects & Goals</h2>
+
+            <button class="btn management-toggle" style="margin-bottom: 20px;" onclick="toggleManagementPanel()" id="managementToggleBtn">
+                Show Management Panel
+            </button>
+            <label style="margin-left: 14px; color: #4a5568; font-weight: 600;"><input type="checkbox" id="includeArchivedPlans" onchange="setManagementArchiveVisibility(this.checked)"> Include archived</label>
+
+            <div id="managementPanel" style="display: none;">
+                <div class="management-toolbar">
+                    <p>Use the tree to create the next level in context. Historical work stays available through Archive.</p>
+                    <button class="management-new-btn" type="button" onclick="openManagementCreate('project')">+ New Project</button>
+                </div>
+                <div id="managementCreatePanel" class="management-create-panel" style="display: none;"></div>
+                <div id="goalsHierarchy" class="management-tree">Loading...</div>
+            </div>
+        </div>
+
+        <!-- Today's To-Do List -->
+        <div class="todo-list-card">
+            <div class="date-header">
+                <h3>Tasks for <span id="displayDate">Today</span></h3>
+                <div class="date-nav" style="display: flex; gap: 10px; align-items: center;">
+                    <button onclick="navigateDate(-1)" class="nav-btn">&lt; Prev</button>
+                    <input type="date" id="datePicker" onchange="goToDate(this.value)" style="padding: 8px 12px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 1em;">
+                    <button onclick="navigateDate(1)" class="nav-btn">Next &gt;</button>
+                    <button onclick="goToToday()" class="nav-btn" style="margin-left: 10px;">Today</button>
+                    <button onclick="exportDailyToWord()" class="nav-btn" style="background: #48bb78; margin-left: 10px;" title="Export to Word">📄 Export Word</button>
+                </div>
+            </div>
+
+            <div id="currentWeekGoals" class="current-week-goals"></div>
+
+            <div class="stats-summary">
+                <div class="stat">
+                    <span class="stat-icon">✓</span>
+                    <div>
+                        <div class="stat-label">Completed</div>
+                        <div class="stat-value" id="completedCount">0</div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">⚡</span>
+                    <div>
+                        <div class="stat-label">In Progress</div>
+                        <div class="stat-value" id="progressCount">0</div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <span class="stat-icon">📋</span>
+                    <div>
+                        <div class="stat-label">Total</div>
+                        <div class="stat-value" id="totalCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter Bar -->
+            <div class="search-filter-bar">
+                <input type="text" id="taskSearchInput" placeholder="Search tasks by title or description..." style="flex: 2;">
+                <button class="filter-btn" onclick="performSearch()" style="background: #667eea; color: white;">🔍 Search</button>
+                <select id="statusFilter" onchange="filterTasks()">
+                    <option value="all">All Status</option>
+                    <option value="unclassified">Unclassified</option>
+                    <option value="pending">Pending Only</option>
+                    <option value="completed">Completed Only</option>
+                </select>
+                <select id="goalFilter" onchange="filterTasks()">
+                    <option value="all">All Goals</option>
+                </select>
+                <select id="timePeriodFilter" onchange="filterTasks()">
+                    <option value="all">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="yesterday">Yesterday</option>
+                    <option value="last7days">Last 7 Days</option>
+                    <option value="last14days">Last 14 Days</option>
+                    <option value="last30days">Last 30 Days</option>
+                    <option value="thisweek">This Week</option>
+                    <option value="lastweek">Last Week</option>
+                    <option value="thismonth">This Month</option>
+                    <option value="lastmonth">Last Month</option>
+                </select>
+                <button class="filter-btn clear" onclick="clearFilters()">Clear Filters</button>
+            </div>
+
+            <div id="taskSelectionBar" class="task-selection-bar"></div>
+
+            <!-- Search Results Container -->
+            <div id="searchResultsContainer" style="display: none;"></div>
+
+            <div id="tasksList">
+                <!-- Tasks will be dynamically loaded here -->
+                <p style="text-align: center; color: #718096; padding: 40px;">Loading tasks...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script src="logger.js"></script>
+    <script>
+        // Safe logging wrapper (in case logger.js fails to load)
+        const log = {
+            debug: (msg, data) => { if (typeof appLogger !== 'undefined') appLogger.debug(msg, data); else console.log('[DEBUG]', msg, data); },
+            info: (msg, data) => { if (typeof appLogger !== 'undefined') appLogger.info(msg, data); else console.log('[INFO]', msg, data); },
+            warn: (msg, data) => { if (typeof appLogger !== 'undefined') appLogger.warn(msg, data); else console.warn('[WARN]', msg, data); },
+            error: (msg, data) => { if (typeof appLogger !== 'undefined') appLogger.error(msg, data); else console.error('[ERROR]', msg, data); }
+        };
+
+        // Global state
+        let projects = [];
+        let annualGoals = [];
+        let monthlyGoals = [];
+        let weeklyGoals = [];
+        let experiments = [];
+        let tasks = [];
+        let activePlan = {
+            projectId: null,
+            annualGoalId: null,
+            monthlyGoalId: null,
+            weeklyGoalId: null
+        };
+        let currentAnnualGoal = null;
+        let currentMonthlyGoal = null;
+        let selectedYear = new Date().getFullYear();  // Current year filter
+
+        // Lookup arrays (all data for rendering tags and management panel)
+        let allAnnualGoals = [];
+        let allMonthlyGoals = [];
+
+        // Date navigation state
+        let selectedDate = new Date();  // Current viewing date
+
+        // Search state
+        let searchResults = [];
+        let searchPage = 1;
+        let searchTotalPages = 1;
+        let isSearchActive = false;
+        let detailedTaskSaving = false;
+        let managementShowArchived = false;
+        let managementProjects = [];
+        let managementAnnualGoals = [];
+        let managementMonthlyGoals = [];
+        let managementWeeklyGoals = [];
+        let managementTasks = [];
+        let managementComposer = null;
+        let taskSelectionMode = false;
+        let selectedTaskIds = new Set();
+        let quickProtocolSelection = null;
+
+        // Initialize page
+        async function initializePage() {
+            try {
+                // Initialize year selector
+                initializeYearSelector();
+
+                // The dashboard remains usable even if a secondary lookup is
+                // temporarily unavailable. Core task entry should not be blocked.
+                const baseLoads = await Promise.allSettled([
+                    loadProjects(),
+                    loadWeeklyGoals(),
+                    loadExperiments()
+                ]);
+                const failedBaseLoads = baseLoads.filter(result => result.status === 'rejected');
+                if (failedBaseLoads.length > 0) {
+                    console.warn('Some dashboard lookups did not load:', failedBaseLoads);
+                    showError('Some planning data could not be loaded. You can still add tasks and retry by refreshing.');
+                }
+
+                // Load ALL goals for lookup
+                try {
+                    await loadAllGoalsForLookup();
+                } catch (error) {
+                    console.warn('Goal lookup data did not load:', error);
+                }
+
+                // Auto-select first project and load its goals BEFORE tasks
+                if (projects.length > 0) {
+                    await loadAnnualGoals(projects[0].id);
+                } else {
+                    // No projects exist, update dropdowns to show empty state
+                    annualGoals = [];
+                    monthlyGoals = [];
+                    updateAnnualGoalDropdown();
+                    updateMonthlyGoalDropdown();
+                }
+
+                // NOW initialize date and load tasks (goals are ready)
+                updateDateDisplay();
+                await loadTasksForDate();
+
+                // Initialize date inputs to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('quickDateInput').value = today;
+                const detailedDate = document.getElementById('detailedDate');
+                if (detailedDate) detailedDate.value = today;
+                const legacyAnnualYear = document.getElementById('newAnnualYear');
+                if (legacyAnnualYear) legacyAnnualYear.value = selectedYear;
+                initializePlanningWorkspace();
+
+                // Populate goal filter dropdown
+                populateGoalFilter();
+
+                // Check for editTask query parameter
+                const urlParams = new URLSearchParams(window.location.search);
+                const editTaskId = urlParams.get('editTask');
+                if (editTaskId) {
+                    // Wait a bit for tasks to be fully loaded
+                    setTimeout(() => {
+                        editTask(parseInt(editTaskId));
+                        // Clear the URL parameter
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }, 500);
+                }
+
+            } catch (error) {
+                console.error('Error initializing page:', error);
+                showError('Failed to load data. Please refresh the page.');
+            }
+        }
+
+        // Year selector functions
+        function initializeYearSelector() {
+            const selector = document.getElementById('yearSelector');
+            const currentYear = new Date().getFullYear();
+
+            // Create options for years (current year ± 5 years)
+            const years = [];
+            for (let year = currentYear - 5; year <= currentYear + 5; year++) {
+                years.push(year);
+            }
+
+            selector.innerHTML = years.map(year =>
+                `<option value="${year}" ${year === selectedYear ? 'selected' : ''}>${year}</option>`
+            ).join('');
+        }
+
+        async function onYearChange() {
+            const selector = document.getElementById('yearSelector');
+            selectedYear = parseInt(selector.value);
+
+            // Jump to January 1st of selected year
+            selectedDate = new Date(selectedYear, 0, 1);
+            updateDateDisplay();
+
+            // Reload projects for selected year
+            await loadProjects();
+
+            // Reload annual goals for selected year
+            if (projects.length > 0 && document.getElementById('projectSelect')) {
+                const projectId = parseInt(document.getElementById('projectSelect').value);
+                if (projectId) {
+                    await loadAnnualGoals(projectId);
+                }
+            }
+
+            // Reload tasks for current date
+            await loadTasksForDate();
+
+            // Reload all goals for lookup
+            await loadAllGoalsForLookup();
+            refreshPlanningWorkspace();
+
+            // Update goal filter dropdown
+            populateGoalFilter();
+
+            // Re-render management panel if it's open
+            const panel = document.getElementById('managementPanel');
+            if (panel && panel.style.display !== 'none') {
+                renderManagementPanel();
+            }
+
+            showSuccess(`Switched to year ${selectedYear}`);
+        }
+
+        // Load functions
+        async function loadProjects() {
+            projects = await api.getProjects(selectedYear);
+            updateProjectDropdown();
+        }
+
+        async function loadAnnualGoals(projectId) {
+            log.debug('loadAnnualGoals called', { projectId });
+            annualGoals = await api.getAnnualGoals(projectId, selectedYear);
+            log.debug('Loaded annual goals', { count: annualGoals.length });
+            updateAnnualGoalDropdown();
+
+            if (annualGoals.length > 0) {
+                currentAnnualGoal = annualGoals[0];
+                await loadMonthlyGoals(annualGoals[0].id);
+            } else {
+                log.debug('No annual goals for this project, clearing monthly goals');
+                currentAnnualGoal = null;
+                monthlyGoals = [];
+                updateMonthlyGoalDropdown();
+            }
+        }
+
+        async function loadMonthlyGoals(annualGoalId) {
+            monthlyGoals = await api.getMonthlyGoals(annualGoalId);
+            updateMonthlyGoalDropdown();
+
+            // Auto-select first in-progress or most recent monthly goal
+            const inProgress = monthlyGoals.find(mg => mg.status === 'in-progress');
+            currentMonthlyGoal = inProgress || monthlyGoals[0];
+        }
+
+        async function loadWeeklyGoals() {
+            weeklyGoals = await api.getWeeklyGoals();
+            updateWeeklyGoalDropdown();
+            renderCurrentWeekGoals();
+        }
+
+        async function loadExperiments() {
+            experiments = await api.getExperiments();
+            updateExperimentDropdown();
+        }
+
+        // Load ALL goals for lookup (used for task tags and management panel)
+        async function loadAllGoalsForLookup() {
+            // Filter annual goals by selected year
+            const allAnnualGoalsRaw = await api.getAnnualGoals();
+            allAnnualGoals = allAnnualGoalsRaw.filter(ag => ag.year === selectedYear);
+
+            // Filter monthly goals that overlap with selected year
+            const allMonthlyGoalsRaw = await api.getMonthlyGoals();
+            allMonthlyGoals = allMonthlyGoalsRaw.filter(mg => {
+                if (!mg.start_date || !mg.end_date) return false;
+
+                const startDate = new Date(mg.start_date);
+                const endDate = new Date(mg.end_date);
+                const yearStart = new Date(selectedYear, 0, 1);
+                const yearEnd = new Date(selectedYear, 11, 31, 23, 59, 59);
+
+                // Check if the monthly goal overlaps with the selected year
+                return !(endDate < yearStart || startDate > yearEnd);
+            });
+        }
+
+        async function loadTodayTasks() {
+            tasks = await api.getTodayTasks();
+            renderTasks();
+            updateStats();
+        }
+
+        // Date navigation functions
+        function formatDisplayDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function updateDateDisplay() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const selected = new Date(selectedDate);
+            selected.setHours(0, 0, 0, 0);
+
+            const isToday = today.getTime() === selected.getTime();
+            const displayText = isToday ? `Today - ${formatDisplayDate(selectedDate)}` : formatDisplayDate(selectedDate);
+
+            document.getElementById('displayDate').textContent = displayText;
+            document.getElementById('datePicker').value = selectedDate.toISOString().split('T')[0];
+        }
+
+        async function navigateDate(delta) {
+            selectedDate.setDate(selectedDate.getDate() + delta);
+            updateDateDisplay();
+            await loadTasksForDate();
+        }
+
+        async function goToDate(dateString) {
+            selectedDate = new Date(dateString + 'T12:00:00');
+            updateDateDisplay();
+            await loadTasksForDate();
+        }
+
+        async function goToToday() {
+            selectedDate = new Date();
+            updateDateDisplay();
+            await loadTasksForDate();
+        }
+
+        // Helper function to filter tasks by selected year
+        function filterTasksByYear(taskList) {
+            return taskList.filter(task => {
+                if (!task.date) return true;
+                const taskDate = new Date(task.date);
+                return taskDate.getFullYear() === selectedYear;
+            });
+        }
+
+        async function loadTasksForDate() {
+            const dateStr = selectedDate.toISOString().split('T')[0];
+            const allTasks = await api.getTasks(dateStr, null, false);
+            tasks = filterTasksByYear(allTasks);
+            selectedTaskIds = new Set([...selectedTaskIds].filter(taskId => tasks.some(task => task.id === taskId)));
+            renderCurrentWeekGoals();
+            renderTasks();
+            updateStats();
+        }
+
+        function renderInboxTasks() {
+            const container = document.getElementById('inboxList');
+            const count = document.getElementById('inboxCount');
+            if (count) {
+                count.textContent = inboxTasks.length ? `(${inboxTasks.length})` : '';
+            }
+            if (!container) return;
+            if (inboxTasks.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #718096; padding: 18px;">Inbox is clear. New quick tasks will appear here until you plan them.</p>';
+                return;
+            }
+            container.innerHTML = inboxTasks.map(task => `
+                <div class="todo-item pending" style="padding: 14px; margin-bottom: 10px;">
+                    <input type="checkbox" class="inbox-task-checkbox" value="${task.id}" aria-label="Select ${escapeHtml(task.title)}">
+                    <div class="todo-content">
+                        <div class="todo-title">${escapeHtml(task.title)}</div>
+                        <div class="todo-description">${task.date ? task.date.split('T')[0] : ''} · ${escapeHtml(task.priority || 'normal')} priority</div>
+                    </div>
+                    <div class="todo-actions">
+                        <button class="action-btn" onclick="editTask(${task.id})" title="Plan this task">Edit</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Planning workspace: one reusable destination for task capture and triage.
+        function initializePlanningWorkspace() {
+            try {
+                const savedPlan = JSON.parse(localStorage.getItem('worklogger-active-plan') || '{}');
+                activePlan = { ...activePlan, ...savedPlan };
+            } catch (error) {
+                console.warn('Could not restore the active research plan:', error);
+            }
+            refreshPlanningWorkspace();
+        }
+
+        function saveActivePlan() {
+            localStorage.setItem('worklogger-active-plan', JSON.stringify(activePlan));
+        }
+
+        function setPlanOptions(selectId, items, placeholder, selectedId) {
+            const select = document.getElementById(selectId);
+            if (!select) return;
+            select.innerHTML = `<option value="">${placeholder}</option>` + items.map(item =>
+                `<option value="${item.id}">${escapeHtml(item.name)}</option>`
+            ).join('');
+            select.value = selectedId && items.some(item => item.id === selectedId) ? selectedId : '';
+        }
+
+        function refreshPlanningWorkspace() {
+            const projectItems = projects;
+            if (!projectItems.some(project => project.id === activePlan.projectId)) {
+                activePlan.projectId = null;
+            }
+            const annualItems = activePlan.projectId
+                ? allAnnualGoals.filter(goal => goal.project_id === activePlan.projectId)
+                : [];
+            if (!annualItems.some(goal => goal.id === activePlan.annualGoalId)) {
+                activePlan.annualGoalId = null;
+            }
+            const monthlyItems = activePlan.annualGoalId
+                ? allMonthlyGoals.filter(goal => goal.annual_goal_id === activePlan.annualGoalId)
+                : [];
+            if (!monthlyItems.some(goal => goal.id === activePlan.monthlyGoalId)) {
+                activePlan.monthlyGoalId = null;
+            }
+            const weeklyItems = activePlan.monthlyGoalId
+                ? weeklyGoals.filter(goal => goal.monthly_goal_id === activePlan.monthlyGoalId)
+                : [];
+            if (!weeklyItems.some(goal => goal.id === activePlan.weeklyGoalId)) {
+                activePlan.weeklyGoalId = null;
+            }
+
+            setPlanOptions('planProjectSelect', projectItems, 'Select project', activePlan.projectId);
+            setPlanOptions('planAnnualSelect', annualItems, 'Select annual goal', activePlan.annualGoalId);
+            setPlanOptions('planMonthlySelect', monthlyItems, 'Select monthly milestone', activePlan.monthlyGoalId);
+            setPlanOptions('planWeeklySelect', weeklyItems, 'Select weekly plan', activePlan.weeklyGoalId);
+            saveActivePlan();
+        }
+
+        function onPlanProjectChange(select) {
+            activePlan.projectId = select.value ? parseInt(select.value) : null;
+            activePlan.annualGoalId = null;
+            activePlan.monthlyGoalId = null;
+            activePlan.weeklyGoalId = null;
+            refreshPlanningWorkspace();
+        }
+
+        function onPlanAnnualChange(select) {
+            activePlan.annualGoalId = select.value ? parseInt(select.value) : null;
+            activePlan.monthlyGoalId = null;
+            activePlan.weeklyGoalId = null;
+            refreshPlanningWorkspace();
+        }
+
+        function onPlanMonthlyChange(select) {
+            activePlan.monthlyGoalId = select.value ? parseInt(select.value) : null;
+            activePlan.weeklyGoalId = null;
+            refreshPlanningWorkspace();
+        }
+
+        function onPlanWeeklyChange(select) {
+            activePlan.weeklyGoalId = select.value ? parseInt(select.value) : null;
+            saveActivePlan();
+        }
+
+        async function reloadPlanningWorkspace() {
+            await Promise.all([loadProjects(), loadWeeklyGoals(), loadAllGoalsForLookup()]);
+            refreshPlanningWorkspace();
+        }
+
+        async function createPlanProject() {
+            const input = document.getElementById('newProjectName');
+            const name = input.value.trim();
+            if (!name) {
+                showError('Enter a project name first.');
+                return;
+            }
+            try {
+                const project = await api.createProject({ name, start_year: selectedYear, end_year: selectedYear });
+                input.value = '';
+                activePlan = { projectId: project.id, annualGoalId: null, monthlyGoalId: null, weeklyGoalId: null };
+                await reloadPlanningWorkspace();
+                showSuccess('Project created and set as the current destination.');
+            } catch (error) {
+                showError('Could not create project: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function createPlanAnnualGoal() {
+            const name = document.getElementById('newAnnualName').value.trim();
+            const year = parseInt(document.getElementById('newAnnualYear').value) || selectedYear;
+            if (!activePlan.projectId) {
+                showError('Choose or create a project before adding an annual goal.');
+                return;
+            }
+            if (!name) {
+                showError('Enter an annual goal name first.');
+                return;
+            }
+            try {
+                const goal = await api.createAnnualGoal({ name, project_id: activePlan.projectId, year });
+                document.getElementById('newAnnualName').value = '';
+                activePlan.annualGoalId = goal.id;
+                activePlan.monthlyGoalId = null;
+                activePlan.weeklyGoalId = null;
+                await reloadPlanningWorkspace();
+                showSuccess('Annual goal created.');
+            } catch (error) {
+                showError('Could not create annual goal: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function createPlanMonthlyGoal() {
+            const name = document.getElementById('newMonthlyName').value.trim();
+            const startDate = document.getElementById('newMonthlyStart').value;
+            const endDate = document.getElementById('newMonthlyEnd').value;
+            if (!activePlan.annualGoalId) {
+                showError('Choose or create an annual goal before adding a monthly milestone.');
+                return;
+            }
+            if (!name || !startDate || !endDate || startDate > endDate) {
+                showError('Enter a milestone name and a valid start and end date.');
+                return;
+            }
+            try {
+                const goal = await api.createMonthlyGoal({
+                    name,
+                    annual_goal_id: activePlan.annualGoalId,
+                    start_date: startDate,
+                    end_date: endDate,
+                    status: 'planned'
+                });
+                document.getElementById('newMonthlyName').value = '';
+                activePlan.monthlyGoalId = goal.id;
+                activePlan.weeklyGoalId = null;
+                await reloadPlanningWorkspace();
+                showSuccess('Monthly milestone created.');
+            } catch (error) {
+                showError('Could not create monthly milestone: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function createPlanWeeklyGoal() {
+            const name = document.getElementById('newWeeklyName').value.trim();
+            const startDate = document.getElementById('newWeeklyStart').value;
+            const endDate = document.getElementById('newWeeklyEnd').value;
+            if (!activePlan.monthlyGoalId) {
+                showError('Choose or create a monthly milestone before adding a weekly plan.');
+                return;
+            }
+            if (!name || !startDate || !endDate || startDate > endDate) {
+                showError('Enter a weekly plan name and valid start and end dates.');
+                return;
+            }
+            try {
+                const goal = await api.createWeeklyGoal({
+                    name,
+                    monthly_goal_id: activePlan.monthlyGoalId,
+                    year: parseInt(startDate.slice(0, 4)),
+                    week_start: startDate,
+                    week_end: endDate,
+                    status: 'planned'
+                });
+                document.getElementById('newWeeklyName').value = '';
+                activePlan.weeklyGoalId = goal.id;
+                await reloadPlanningWorkspace();
+                showSuccess('Weekly plan created.');
+            } catch (error) {
+                showError('Could not create weekly plan: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        // Update dropdown functions
+        function updateProjectDropdown() {
+            const select = document.getElementById('projectSelect');
+            if (!select) return;
+
+            if (projects.length === 0) {
+                select.innerHTML = '<option value="">No projects - create one</option><option value="new">+ Add New Project</option>';
+            } else {
+                select.innerHTML = projects.map(p =>
+                    `<option value="${p.id}">${p.name}</option>`
+                ).join('') + '<option value="new">+ Add New Project</option>';
+            }
+        }
+
+        function updateAnnualGoalDropdown() {
+            const select = document.getElementById('annualGoalSelect');
+            if (!select) return;
+
+            if (annualGoals.length === 0) {
+                select.innerHTML = '<option value="">No annual goals - create one below</option><option value="new">+ Add New Annual Goal</option>';
+            } else {
+                select.innerHTML = annualGoals.map(ag =>
+                    `<option value="${ag.id}">${ag.name}</option>`
+                ).join('') + '<option value="new">+ Add New Annual Goal</option>';
+            }
+        }
+
+        function updateMonthlyGoalDropdown() {
+            const select = document.getElementById('monthlyGoalSelect');
+            if (!select) return;
+
+            if (monthlyGoals.length === 0) {
+                select.innerHTML = '<option value="">No monthly goals - create one below</option><option value="new">+ Add New Monthly Goal</option>';
+            } else {
+                select.innerHTML = monthlyGoals.map(mg =>
+                    `<option value="${mg.id}">${mg.name}</option>`
+                ).join('') + '<option value="new">+ Add New Monthly Goal</option>';
+            }
+        }
+
+        function updateWeeklyGoalDropdown() {
+            const select = document.getElementById('weeklyGoalSelect');
+            if (!select) return;
+
+            select.innerHTML = '<option value="">Select or create...</option>' +
+                weeklyGoals.map(wg =>
+                    `<option value="${wg.id}">${wg.name}</option>`
+                ).join('') + '<option value="new">+ Add New Weekly Goal</option>';
+        }
+
+        function updateExperimentDropdown() {
+            if (document.getElementById('quickProtocolMenu')) renderQuickProtocolMenu();
+        }
+
+        function renderQuickProtocolMenu(filterText = null) {
+            const menu = document.getElementById('quickProtocolMenu');
+            if (!menu) return;
+
+            const input = document.getElementById('quickProtocolInput');
+            const filter = (filterText === null ? input?.value : filterText || '').trim().toLowerCase();
+            const matchingProtocols = experiments.filter(protocol => protocol.name.toLowerCase().includes(filter));
+
+            menu.innerHTML = `
+                <button type="button" class="quick-protocol-menu-item quick-protocol-create" onclick="selectNewQuickProtocol()">+ Create new Protocol</button>
+                ${matchingProtocols.length
+                    ? matchingProtocols.map(protocol => `<button type="button" class="quick-protocol-menu-item" onclick="selectQuickProtocol(${protocol.id})">${escapeHtml(protocol.name)}</button>`).join('')
+                    : '<div class="quick-protocol-empty">No matching Protocols</div>'}
+            `;
+        }
+
+        function openQuickProtocolMenu() {
+            const menu = document.getElementById('quickProtocolMenu');
+            if (!menu) return;
+            renderQuickProtocolMenu();
+            menu.style.display = 'block';
+        }
+
+        function toggleQuickProtocolMenu() {
+            const menu = document.getElementById('quickProtocolMenu');
+            if (!menu) return;
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+            } else {
+                openQuickProtocolMenu();
+            }
+        }
+
+        function filterQuickProtocolMenu() {
+            quickProtocolSelection = null;
+            document.getElementById('quickDuplicateProtocolOnCreate').checked = false;
+            document.getElementById('quickCopyOption').style.display = 'inline-flex';
+            renderQuickProtocolMenu();
+            document.getElementById('quickProtocolMenu').style.display = 'block';
+        }
+
+        function selectQuickProtocol(protocolId) {
+            const protocol = experiments.find(item => item.id === protocolId);
+            if (!protocol) return;
+            quickProtocolSelection = { type: 'existing', id: protocol.id };
+            document.getElementById('quickProtocolInput').value = protocol.name;
+            document.getElementById('quickCopyOption').style.display = 'inline-flex';
+            document.getElementById('quickProtocolMenu').style.display = 'none';
+        }
+
+        function selectNewQuickProtocol() {
+            quickProtocolSelection = { type: 'new' };
+            document.getElementById('quickProtocolInput').value = 'New Protocol';
+            document.getElementById('quickDuplicateProtocolOnCreate').checked = false;
+            document.getElementById('quickCopyOption').style.display = 'none';
+            document.getElementById('quickProtocolMenu').style.display = 'none';
+        }
+
+        function clearQuickProtocolSelection() {
+            quickProtocolSelection = null;
+            document.getElementById('quickProtocolInput').value = '';
+            document.getElementById('quickDuplicateProtocolOnCreate').checked = false;
+            document.getElementById('quickCopyOption').style.display = 'inline-flex';
+            document.getElementById('quickProtocolMenu').style.display = 'none';
+        }
+
+        // Populate goal filter dropdown
+        function populateGoalFilter() {
+            const select = document.getElementById('goalFilter');
+            select.innerHTML = '<option value="all">All Goals</option>';
+
+            // Add monthly goals
+            monthlyGoals.forEach(mg => {
+                select.innerHTML += `<option value="monthly-${mg.id}">Monthly: ${escapeHtml(mg.name)}</option>`;
+            });
+
+            // Add weekly goals
+            weeklyGoals.forEach(wg => {
+                select.innerHTML += `<option value="weekly-${wg.id}">Weekly: ${escapeHtml(wg.name)}</option>`;
+            });
+        }
+
+        // Filter tasks based on filter criteria (no longer handles search)
+        function filterTasks() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const goalFilter = document.getElementById('goalFilter').value;
+            const timePeriodFilter = document.getElementById('timePeriodFilter').value;
+
+            // Clear search if active
+            if (isSearchActive) {
+                isSearchActive = false;
+                document.getElementById('searchResultsContainer').style.display = 'none';
+            }
+
+            const filteredTasks = tasks.filter(task => {
+                // Status filter
+                const matchesStatus = statusFilter === 'all' ||
+                    (statusFilter === 'unclassified' && task.workflow_status === 'unclassified') ||
+                    (statusFilter === 'completed' && task.completed) ||
+                    (statusFilter === 'pending' && !task.completed);
+
+                // Goal filter
+                let matchesGoal = goalFilter === 'all';
+                if (goalFilter.startsWith('monthly-')) {
+                    const goalId = parseInt(goalFilter.split('-')[1]);
+                    matchesGoal = task.monthly_goal_id === goalId;
+                } else if (goalFilter.startsWith('weekly-')) {
+                    const goalId = parseInt(goalFilter.split('-')[1]);
+                    matchesGoal = task.weekly_goal_id === goalId;
+                }
+
+                // Time period filter
+                let matchesTimePeriod = true;
+                if (timePeriodFilter !== 'all' && task.date) {
+                    const taskDate = new Date(task.date);
+                    taskDate.setHours(0, 0, 0, 0);
+                    const now = new Date();
+                    now.setHours(0, 0, 0, 0);
+
+                    switch(timePeriodFilter) {
+                        case 'today':
+                            matchesTimePeriod = taskDate.getTime() === now.getTime();
+                            break;
+                        case 'yesterday':
+                            const yesterday = new Date(now);
+                            yesterday.setDate(yesterday.getDate() - 1);
+                            matchesTimePeriod = taskDate.getTime() === yesterday.getTime();
+                            break;
+                        case 'last7days':
+                            const last7 = new Date(now);
+                            last7.setDate(last7.getDate() - 7);
+                            matchesTimePeriod = taskDate >= last7 && taskDate <= now;
+                            break;
+                        case 'last14days':
+                            const last14 = new Date(now);
+                            last14.setDate(last14.getDate() - 14);
+                            matchesTimePeriod = taskDate >= last14 && taskDate <= now;
+                            break;
+                        case 'last30days':
+                            const last30 = new Date(now);
+                            last30.setDate(last30.getDate() - 30);
+                            matchesTimePeriod = taskDate >= last30 && taskDate <= now;
+                            break;
+                        case 'thisweek':
+                            const weekStart = getWeekStart(now);
+                            const weekEnd = new Date(weekStart);
+                            weekEnd.setDate(weekEnd.getDate() + 6);
+                            matchesTimePeriod = taskDate >= weekStart && taskDate <= weekEnd;
+                            break;
+                        case 'lastweek':
+                            const lastWeekStart = getWeekStart(now);
+                            lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+                            const lastWeekEnd = new Date(lastWeekStart);
+                            lastWeekEnd.setDate(lastWeekEnd.getDate() + 6);
+                            matchesTimePeriod = taskDate >= lastWeekStart && taskDate <= lastWeekEnd;
+                            break;
+                        case 'thismonth':
+                            matchesTimePeriod = taskDate.getMonth() === now.getMonth() &&
+                                               taskDate.getFullYear() === now.getFullYear();
+                            break;
+                        case 'lastmonth':
+                            const lastMonth = new Date(now);
+                            lastMonth.setMonth(lastMonth.getMonth() - 1);
+                            matchesTimePeriod = taskDate.getMonth() === lastMonth.getMonth() &&
+                                               taskDate.getFullYear() === lastMonth.getFullYear();
+                            break;
+                    }
+                }
+
+                // Year filter
+                let matchesYear = true;
+                if (task.date) {
+                    const taskDate = new Date(task.date);
+                    matchesYear = taskDate.getFullYear() === selectedYear;
+                }
+
+                return matchesStatus && matchesGoal && matchesTimePeriod && matchesYear;
+            });
+
+            renderFilteredTasks(filteredTasks);
+        }
+
+        // Perform backend search
+        async function performSearch() {
+            const searchQuery = document.getElementById('taskSearchInput').value.trim();
+
+            // Clear search if empty
+            if (!searchQuery) {
+                isSearchActive = false;
+                document.getElementById('searchResultsContainer').style.display = 'none';
+                return;
+            }
+
+            isSearchActive = true;
+            searchPage = 1; // Reset to first page
+
+            try {
+                const response = await fetch(`/api/tasks/search?q=${encodeURIComponent(searchQuery)}&page=${searchPage}&limit=5`);
+
+                if (!response.ok) {
+                    throw new Error(`Search failed with status ${response.status}`);
+                }
+
+                const data = await response.json();
+                searchResults = data.tasks || [];
+                searchTotalPages = data.total_pages || 1;
+
+                renderSearchResults(data);
+                // DO NOT call renderTasks() here - that's the bug!
+
+            } catch (error) {
+                console.error('Error searching tasks:', error);
+                showError('Failed to search tasks: ' + error.message);
+                document.getElementById('searchResultsContainer').innerHTML =
+                    '<div style="padding: 20px; text-align: center; color: #e53e3e;">Search failed. Please try again.</div>';
+                document.getElementById('searchResultsContainer').style.display = 'block';
+            }
+        }
+
+        // Render search results
+        function renderSearchResults(data) {
+            const container = document.getElementById('searchResultsContainer');
+            if (!container) return;
+
+            if (searchResults.length === 0) {
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #718096;"><p>No search results found.</p></div>';
+                container.style.display = 'block';
+                return;
+            }
+
+            const resultsHtml = searchResults.map(task => {
+                const completedClass = task.completed ? 'completed' : 'pending';
+                const checkIcon = task.completed ? '✓' : '';
+                const checkClass = task.completed ? 'checked' : '';
+
+                const project = task.project_id ? projects.find(p => p.id === task.project_id) : null;
+                const monthlyGoal = task.monthly_goal_id ? allMonthlyGoals.find(mg => mg.id === task.monthly_goal_id) : null;
+                const weeklyGoal = task.weekly_goal_id ? weeklyGoals.find(wg => wg.id === task.weekly_goal_id) : null;
+                const annualGoal = task.annual_goal_id ? allAnnualGoals.find(ag => ag.id === task.annual_goal_id) : (monthlyGoal ? allAnnualGoals.find(ag => ag.id === monthlyGoal.annual_goal_id) : null);
+
+                const taskDate = new Date(task.date).toLocaleDateString();
+
+                return `
+                    <div class="todo-item ${completedClass} ${taskSelectionMode ? 'selection-mode' : ''}" onclick="${taskSelectionMode ? `toggleTaskSelection(${task.id}, ${!selectedTaskIds.has(task.id)})` : `editTask(${task.id})`}">
+                        ${taskSelectionMode
+                            ? `<input class="task-selection-checkbox" type="checkbox" ${selectedTaskIds.has(task.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleTaskSelection(${task.id}, this.checked)" aria-label="Select ${escapeHtml(task.title)}">`
+                            : `<div class="checkbox ${checkClass}" onclick="event.stopPropagation(); toggleTaskComplete(${task.id}, ${!task.completed})">${checkIcon}</div>`}
+                        <div class="todo-content">
+                            <div class="todo-title">${escapeHtml(task.title)}</div>
+                            ${task.description ? `<div class="todo-description">${escapeHtml(task.description)}</div>` : ''}
+                            <div class="todo-tags">
+                                ${project ? `<span class="tag-badge project">${escapeHtml(project.name)}</span>` : ''}
+                                ${annualGoal ? `<span class="tag-badge annual">${escapeHtml(annualGoal.name)}</span>` : ''}
+                                ${monthlyGoal ? `<span class="tag-badge monthly">${escapeHtml(monthlyGoal.name)}</span>` : ''}
+                                ${weeklyGoal ? `<span class="tag-badge weekly">${escapeHtml(weeklyGoal.name)}</span>` : ''}
+                                <span class="tag-badge">${escapeHtml(task.priority || 'normal')}</span>
+                                ${task.workflow_status === 'unclassified' ? '<span class="tag-badge" style="background:#fef3c7;color:#92400e;">Unclassified</span>' : ''}
+                                ${task.workflow_status === 'blocked' ? '<span class="tag-badge" style="background:#fed7d7;color:#9b2c2c;">Blocked</span>' : ''}
+                                <span style="font-size: 0.85em; color: #718096; margin-left: 10px;">${taskDate}</span>
+                            </div>
+                        </div>
+                        <div class="todo-actions">
+                            ${task.experiments && task.experiments.length > 0 ?
+                                `<button class="action-btn" onclick="event.stopPropagation(); handleTaskClick(${task.id})" title="Open linked protocol" aria-label="Open linked protocol">&#128196;</button>` : ''}
+                            <button class="action-btn delete-task" onclick="event.stopPropagation(); ${taskSelectionMode ? 'deleteSelectedTasks()' : `deleteTask(${task.id})`}" title="${taskSelectionMode ? 'Delete selected tasks' : 'Delete task'}" aria-label="${taskSelectionMode ? 'Delete selected tasks' : 'Delete task'}">&times;</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const paginationHtml = `
+                <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; padding: 15px;">
+                    <button class="nav-btn" onclick="changeSearchPage(-1)" ${data.page <= 1 ? 'disabled' : ''}>
+                        ← Previous
+                    </button>
+                    <span style="color: #718096;">
+                        Page ${data.page} of ${data.total_pages} (${data.total_count} results)
+                    </span>
+                    <button class="nav-btn" onclick="changeSearchPage(1)" ${!data.has_next ? 'disabled' : ''}>
+                        Next →
+                    </button>
+                </div>
+            `;
+
+            container.innerHTML = `
+                <div style="background: white; border-radius: 12px; padding: 25px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0; color: #2d3748;">🔍 Search Results</h3>
+                        <button onclick="clearSearch()" class="nav-btn" style="background: #e2e8f0; color: #2d3748;">Clear Search</button>
+                    </div>
+                    ${resultsHtml}
+                    ${paginationHtml}
+                </div>
+            `;
+            container.style.display = 'block';
+        }
+
+        // Change search page
+        async function changeSearchPage(delta) {
+            const newPage = searchPage + delta;
+            if (newPage < 1 || newPage > searchTotalPages) return;
+
+            searchPage = newPage;
+            await performSearch();
+        }
+
+        // Clear search and hide search results
+        function clearSearch() {
+            document.getElementById('taskSearchInput').value = '';
+            isSearchActive = false;
+            searchResults = [];
+            searchPage = 1;
+            document.getElementById('searchResultsContainer').style.display = 'none';
+        }
+
+        // Render filtered tasks
+        function renderFilteredTasks(filteredTasks) {
+            const container = document.getElementById('tasksList');
+            if (!container) return;
+
+            if (filteredTasks.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #718096; padding: 40px;">No tasks match your filters.</p>';
+                return;
+            }
+
+            container.innerHTML = filteredTasks.map(task => {
+                const completedClass = task.completed ? 'completed' : 'pending';
+                const checkIcon = task.completed ? '✓' : '';
+                const checkClass = task.completed ? 'checked' : '';
+
+                // Look up actual goal names from lookup arrays (persists after refresh)
+                const project = task.project_id ? projects.find(p => p.id === task.project_id) : null;
+                const monthlyGoal = task.monthly_goal_id ? allMonthlyGoals.find(mg => mg.id === task.monthly_goal_id) : null;
+                const weeklyGoal = task.weekly_goal_id ? weeklyGoals.find(wg => wg.id === task.weekly_goal_id) : null;
+                const annualGoal = task.annual_goal_id ? allAnnualGoals.find(ag => ag.id === task.annual_goal_id) : (monthlyGoal ? allAnnualGoals.find(ag => ag.id === monthlyGoal.annual_goal_id) : null);
+
+                return `
+                    <div class="todo-item ${completedClass} ${taskSelectionMode ? 'selection-mode' : ''}" onclick="${taskSelectionMode ? `toggleTaskSelection(${task.id}, ${!selectedTaskIds.has(task.id)})` : `editTask(${task.id})`}">
+                        ${taskSelectionMode
+                            ? `<input class="task-selection-checkbox" type="checkbox" ${selectedTaskIds.has(task.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleTaskSelection(${task.id}, this.checked)" aria-label="Select ${escapeHtml(task.title)}">`
+                            : `<div class="checkbox ${checkClass}" onclick="event.stopPropagation(); toggleTaskComplete(${task.id}, ${!task.completed})">${checkIcon}</div>`}
+                        <div class="todo-content">
+                            <div class="todo-title">${escapeHtml(task.title)}</div>
+                            ${task.description ? `<div class="todo-description">${escapeHtml(task.description)}</div>` : ''}
+                            <div class="todo-tags">
+                                ${project ? `<span class="tag-badge project">${escapeHtml(project.name)}</span>` : ''}
+                                ${annualGoal ? `<span class="tag-badge annual">${escapeHtml(annualGoal.name)}</span>` : ''}
+                                ${monthlyGoal ? `<span class="tag-badge monthly">${escapeHtml(monthlyGoal.name)}</span>` : ''}
+                                ${weeklyGoal ? `<span class="tag-badge weekly">${escapeHtml(weeklyGoal.name)}</span>` : ''}
+                                <span class="tag-badge">${escapeHtml(task.priority || 'normal')}</span>
+                                ${task.workflow_status === 'unclassified' ? '<span class="tag-badge" style="background:#fef3c7;color:#92400e;">Unclassified</span>' : ''}
+                                ${task.workflow_status === 'blocked' ? '<span class="tag-badge" style="background:#fed7d7;color:#9b2c2c;">Blocked</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="todo-actions">
+                            ${task.experiments && task.experiments.length > 0 ?
+                                `<button class="action-btn" onclick="event.stopPropagation(); handleTaskClick(${task.id})" title="Open linked protocol" aria-label="Open linked protocol">&#128196;</button>` : ''}
+                            <button class="action-btn delete-task" onclick="event.stopPropagation(); ${taskSelectionMode ? 'deleteSelectedTasks()' : `deleteTask(${task.id})`}" title="${taskSelectionMode ? 'Delete selected tasks' : 'Delete task'}" aria-label="${taskSelectionMode ? 'Delete selected tasks' : 'Delete task'}">&times;</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatDateInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function applyMonthlyPeriod(period) {
+            if (!/^\d{4}-\d{2}$/.test(period)) return;
+            const [year, month] = period.split('-').map(Number);
+            const start = new Date(year, month - 1, 1);
+            const end = new Date(year, month, 0);
+            document.getElementById('newMonthlyPeriod').value = period;
+            document.getElementById('newMonthlyStart').value = formatDateInput(start);
+            document.getElementById('newMonthlyEnd').value = formatDateInput(end);
+        }
+
+        function syncMonthlyPeriodFromManual() {
+            const startDate = document.getElementById('newMonthlyStart').value;
+            const endDate = document.getElementById('newMonthlyEnd').value;
+            if (startDate && endDate && startDate.slice(0, 7) === endDate.slice(0, 7)) {
+                document.getElementById('newMonthlyPeriod').value = startDate.slice(0, 7);
+            } else if (startDate && endDate) {
+                document.getElementById('newMonthlyPeriod').value = '';
+            }
+        }
+
+        function getISOWeekValue(date) {
+            const weekStart = getWeekStart(date);
+            const thursday = new Date(weekStart);
+            thursday.setDate(thursday.getDate() + 3);
+            const year = thursday.getFullYear();
+            const firstWeekStart = getWeekStart(new Date(year, 0, 4));
+            const weekNumber = Math.floor((weekStart - firstWeekStart) / (7 * 24 * 60 * 60 * 1000)) + 1;
+            return `${year}-W${String(weekNumber).padStart(2, '0')}`;
+        }
+
+        function getWeekStartFromISOWeek(period) {
+            const match = /^(\d{4})-W(\d{2})$/.exec(period);
+            if (!match) return null;
+            const year = Number(match[1]);
+            const week = Number(match[2]);
+            const firstWeekStart = getWeekStart(new Date(year, 0, 4));
+            const weekStart = new Date(firstWeekStart);
+            weekStart.setDate(weekStart.getDate() + (week - 1) * 7);
+            return weekStart;
+        }
+
+        function applyWeeklyPeriod(period) {
+            const weekStart = getWeekStartFromISOWeek(period);
+            if (!weekStart) return;
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            document.getElementById('newWeeklyPeriod').value = period;
+            document.getElementById('newWeeklyStart').value = formatDateInput(weekStart);
+            document.getElementById('newWeeklyEnd').value = formatDateInput(weekEnd);
+        }
+
+        function syncWeeklyPeriodFromManual() {
+            const startDate = document.getElementById('newWeeklyStart').value;
+            if (startDate) {
+                document.getElementById('newWeeklyPeriod').value = getISOWeekValue(new Date(startDate + 'T12:00:00'));
+            }
+        }
+
+        // Clear all filters
+        // Helper function to get week start (Monday)
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+            return new Date(d.setDate(diff));
+        }
+
+        function clearFilters() {
+            document.getElementById('taskSearchInput').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('goalFilter').value = 'all';
+            document.getElementById('timePeriodFilter').value = 'all';
+            renderTasks();
+        }
+
+        function getCurrentWeekGoals() {
+            const weekStart = getWeekStart(new Date(selectedDate));
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            const startValue = formatDateInput(weekStart);
+            const endValue = formatDateInput(weekEnd);
+            return weeklyGoals.filter(goal =>
+                goal.week_start <= endValue && goal.week_end >= startValue
+            );
+        }
+
+        function renderCurrentWeekGoals() {
+            const container = document.getElementById('currentWeekGoals');
+            if (!container) return;
+            const goals = getCurrentWeekGoals();
+            const selectedCount = selectedTaskIds.size;
+            const disabled = selectedCount === 0 ? 'disabled' : '';
+            const hint = selectedCount === 0
+                ? 'Select one or more tasks below, then choose a weekly goal.'
+                : `${selectedCount} selected — choose a weekly goal to assign.`;
+            container.innerHTML = `
+                <span class="current-week-goals-label">This week</span>
+                ${goals.length ? goals.map(goal =>
+                    `<button class="weekly-goal-chip" ${disabled} onclick="assignSelectedTasksToWeeklyGoal(${goal.id}, '${escapeHtml(goal.name)}')">${escapeHtml(goal.name)}</button>`
+                ).join('') : '<span style="color:#71858a; font-size:0.88em;">No weekly goals for this week.</span>'}
+                <span style="color:#71858a; font-size:0.84em;">${hint}</span>`;
+        }
+
+        function renderTaskSelectionBar() {
+            const container = document.getElementById('taskSelectionBar');
+            if (!container) return;
+            if (tasks.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            const selectedCount = selectedTaskIds.size;
+            container.innerHTML = `
+                <button class="${taskSelectionMode ? 'active' : ''}" onclick="toggleTaskSelectionMode()">${taskSelectionMode ? 'Done selecting' : 'Select tasks'}</button>
+                ${taskSelectionMode ? `<span class="task-selection-count">${selectedCount} selected</span><span>Choose a weekly goal above, or click a Week in Manage Projects & Goals.</span>` : '<span>Select one or more tasks to assign them together.</span>'}`;
+        }
+
+        function toggleTaskSelectionMode() {
+            taskSelectionMode = !taskSelectionMode;
+            if (!taskSelectionMode) selectedTaskIds.clear();
+            renderCurrentWeekGoals();
+            renderTasks();
+            if (document.getElementById('managementPanel')?.style.display !== 'none') renderGoalsHierarchy();
+        }
+
+        function toggleTaskSelection(taskId, checked) {
+            if (checked) selectedTaskIds.add(taskId);
+            else selectedTaskIds.delete(taskId);
+            renderCurrentWeekGoals();
+            renderTasks();
+            if (document.getElementById('managementPanel')?.style.display !== 'none') renderGoalsHierarchy();
+        }
+
+        async function deleteSelectedTasks() {
+            const taskIds = [...selectedTaskIds];
+            if (taskIds.length === 0) {
+                showError('Select at least one task before deleting.');
+                return;
+            }
+            if (!confirm(`Delete ${taskIds.length} selected task${taskIds.length === 1 ? '' : 's'}? This cannot be undone.`)) {
+                return;
+            }
+            try {
+                await Promise.all(taskIds.map(taskId => api.deleteTask(taskId)));
+                selectedTaskIds.clear();
+                taskSelectionMode = false;
+                await loadTasksForDate();
+                showSuccess(`${taskIds.length} task${taskIds.length === 1 ? '' : 's'} deleted.`);
+            } catch (error) {
+                console.error('Failed to delete selected tasks:', error);
+                showError('Failed to delete the selected tasks: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function assignSelectedTasksToWeeklyGoal(weeklyGoalId, weeklyGoalName) {
+            const taskIds = [...selectedTaskIds];
+            if (taskIds.length === 0) {
+                showError('Select at least one task first.');
+                return;
+            }
+            try {
+                await Promise.all(taskIds.map(taskId => api.updateTask(taskId, { weekly_goal_id: weeklyGoalId })));
+                selectedTaskIds.clear();
+                taskSelectionMode = false;
+                await Promise.all([loadTasksForDate(), loadAllGoalsForLookup()]);
+                showSuccess(`${taskIds.length} task${taskIds.length === 1 ? '' : 's'} assigned to ${weeklyGoalName}.`);
+            } catch (error) {
+                console.error('Failed to assign selected tasks:', error);
+                showError('Failed to assign the selected tasks: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        // Render tasks
+        function renderTasks() {
+            const container = document.getElementById('tasksList');
+            if (!container) return;
+
+            renderTaskSelectionBar();
+
+            if (tasks.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #718096; padding: 40px;">No tasks for today. Add your first task above!</p>';
+                return;
+            }
+
+            container.innerHTML = tasks.map(task => {
+                const completedClass = task.completed ? 'completed' : 'pending';
+                const checkIcon = task.completed ? '✓' : '';
+                const checkClass = task.completed ? 'checked' : '';
+
+                // Look up actual goal names from lookup arrays (persists after refresh)
+                const project = task.project_id ? projects.find(p => p.id === task.project_id) : null;
+                const monthlyGoal = task.monthly_goal_id ? allMonthlyGoals.find(mg => mg.id === task.monthly_goal_id) : null;
+                const weeklyGoal = task.weekly_goal_id ? weeklyGoals.find(wg => wg.id === task.weekly_goal_id) : null;
+                const annualGoal = task.annual_goal_id ? allAnnualGoals.find(ag => ag.id === task.annual_goal_id) : (monthlyGoal ? allAnnualGoals.find(ag => ag.id === monthlyGoal.annual_goal_id) : null);
+
+                return `
+                    <div class="todo-item ${completedClass} ${taskSelectionMode ? 'selection-mode' : ''}" onclick="${taskSelectionMode ? `toggleTaskSelection(${task.id}, ${!selectedTaskIds.has(task.id)})` : `editTask(${task.id})`}">
+                        ${taskSelectionMode
+                            ? `<input class="task-selection-checkbox" type="checkbox" ${selectedTaskIds.has(task.id) ? 'checked' : ''} onclick="event.stopPropagation(); toggleTaskSelection(${task.id}, this.checked)" aria-label="Select ${escapeHtml(task.title)}">`
+                            : `<div class="checkbox ${checkClass}" onclick="event.stopPropagation(); toggleTaskComplete(${task.id}, ${!task.completed})">${checkIcon}</div>`}
+                        <div class="todo-content">
+                            <div class="todo-title">${escapeHtml(task.title)}</div>
+                            ${task.description ? `<div class="todo-description">${escapeHtml(task.description)}</div>` : ''}
+                            <div class="todo-tags">
+                                ${project ? `<span class="tag-badge project">${escapeHtml(project.name)}</span>` : ''}
+                                ${annualGoal ? `<span class="tag-badge annual">${escapeHtml(annualGoal.name)}</span>` : ''}
+                                ${monthlyGoal ? `<span class="tag-badge monthly">${escapeHtml(monthlyGoal.name)}</span>` : ''}
+                                ${weeklyGoal ? `<span class="tag-badge weekly">${escapeHtml(weeklyGoal.name)}</span>` : ''}
+                                <span class="tag-badge">${escapeHtml(task.priority || 'normal')}</span>
+                                ${task.workflow_status === 'unclassified' ? '<span class="tag-badge" style="background:#fef3c7;color:#92400e;">Unclassified</span>' : ''}
+                                ${task.workflow_status === 'blocked' ? '<span class="tag-badge" style="background:#fed7d7;color:#9b2c2c;">Blocked</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="todo-actions">
+                            ${task.experiments && task.experiments.length > 0 ?
+                                `<button class="action-btn" onclick="event.stopPropagation(); handleTaskClick(${task.id})" title="Open linked protocol" aria-label="Open linked protocol">&#128196;</button>` : ''}
+                            <button class="action-btn delete-task" onclick="event.stopPropagation(); ${taskSelectionMode ? 'deleteSelectedTasks()' : `deleteTask(${task.id})`}" title="${taskSelectionMode ? 'Delete selected tasks' : 'Delete task'}" aria-label="${taskSelectionMode ? 'Delete selected tasks' : 'Delete task'}">&times;</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const pending = total - completed;
+
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('progressCount').textContent = pending;
+            document.getElementById('totalCount').textContent = total;
+        }
+
+        // Toggle form
+        function toggleDetailedForm() {
+            const form = document.getElementById('detailedForm');
+            const btn = document.getElementById('toggleBtn');
+
+            if (form.classList.contains('active')) {
+                form.classList.remove('active');
+                btn.textContent = '🧪 Create Detailed Task / Link to Protocol';
+            } else {
+                form.classList.add('active');
+                btn.textContent = '← Hide Detailed Form';
+            }
+        }
+
+        // Quick add task
+        async function addQuickTodo() {
+            const input = document.getElementById('quickInput');
+            const dateInput = document.getElementById('quickDateInput');
+            const title = input.value.trim();
+            const duplicateProtocol = document.getElementById('quickDuplicateProtocolOnCreate').checked;
+
+            if (!title) return;
+
+            const protocolInput = document.getElementById('quickProtocolInput');
+            const protocolTitle = protocolInput.value.trim();
+            const selectedProtocol = quickProtocolSelection?.type === 'existing'
+                ? experiments.find(protocol => protocol.id === quickProtocolSelection.id)
+                : null;
+            const createNewProtocol = quickProtocolSelection?.type === 'new';
+            if (protocolTitle && !selectedProtocol && !createNewProtocol) {
+                showError('Choose a Protocol from the menu, or clear this field.');
+                return;
+            }
+
+            // Use selected date or default to today
+            const selectedDate = dateInput.value || new Date().toISOString().split('T')[0];
+
+            try {
+                const task = await api.createTask({
+                    title: title,
+                    date: new Date(selectedDate + 'T12:00:00').toISOString(),
+                    priority: 'normal',
+                    workflow_status: 'unclassified',
+                    experiment_ids: selectedProtocol && !duplicateProtocol ? [selectedProtocol.id] : []
+                });
+
+                if (createNewProtocol) {
+                    const newProtocol = await api.createExperiment({ name: `${title} Protocol` });
+                    await api.updateTask(task.id, { experiment_ids: [newProtocol.id] });
+                    window.open(`experiment-detail.html?id=${newProtocol.id}`, '_blank', 'noopener');
+                } else if (selectedProtocol && duplicateProtocol) {
+                    const copiedProtocol = await api.duplicateExperiment(selectedProtocol.id);
+                    await api.updateTask(task.id, { experiment_ids: [copiedProtocol.id] });
+                    window.open(`experiment-detail.html?id=${copiedProtocol.id}`, '_blank', 'noopener');
+                }
+
+                input.value = '';
+                clearQuickProtocolSelection();
+                await loadTasksForDate();
+                showSuccess(createNewProtocol
+                    ? 'Task added. New Protocol opened in a new tab.'
+                    : selectedProtocol && duplicateProtocol
+                        ? 'Task added. Protocol copy opened in a new tab.'
+                        : 'Task added.');
+            } catch (error) {
+                console.error('Error adding task:', error);
+                showError('Failed to add task. Please try again.');
+            }
+        }
+
+        // Detailed add task
+        async function addDetailedTask() {
+            if (detailedTaskSaving) return;
+            const title = document.getElementById('detailedTitle').value.trim();
+            const description = document.getElementById('detailedDescription').value.trim();
+            const dateInput = document.getElementById('detailedDate').value;
+            const monthlyGoalId = parseInt(document.getElementById('monthlyGoalSelect').value);
+            const weeklyGoalId = document.getElementById('weeklyGoalSelect').value;
+            const experimentId = document.getElementById('experimentSelect').value;
+            const duplicateProtocol = document.getElementById('duplicateProtocolOnCreate').checked;
+            const projectId = document.getElementById('projectSelect').value;
+            const annualGoalId = document.getElementById('annualGoalSelect').value;
+
+            if (!title) {
+                showError('Please enter a task title');
+                return;
+            }
+
+            detailedTaskSaving = true;
+            const submitButton = document.getElementById('addDetailedTaskButton');
+            submitButton.disabled = true;
+            submitButton.textContent = 'Saving…';
+
+            // Use selected date or default to today
+            const selectedDate = dateInput || new Date().toISOString().split('T')[0];
+
+            try {
+                const taskData = {
+                    title: title,
+                    description: description || null,
+                    date: new Date(selectedDate + 'T12:00:00').toISOString(),
+                    project_id: projectId ? parseInt(projectId) : null,
+                    annual_goal_id: annualGoalId ? parseInt(annualGoalId) : null,
+                    monthly_goal_id: monthlyGoalId || null,
+                    weekly_goal_id: weeklyGoalId ? parseInt(weeklyGoalId) : null,
+                    priority: document.getElementById('detailedPriority').value,
+                    workflow_status: document.getElementById('detailedWorkflowStatus').value,
+                    // A copied Protocol is linked only after it exists. This
+                    // avoids briefly attaching the source template to a task.
+                    experiment_ids: experimentId && !duplicateProtocol ? [parseInt(experimentId)] : []
+                };
+
+                const task = await api.createTask(taskData);
+
+                // Keep the task capture durable before opening a copied
+                // protocol. A failed copy must not discard the new task.
+                if (duplicateProtocol && experimentId) {
+                    try {
+                        const copiedProtocol = await api.duplicateExperiment(parseInt(experimentId));
+                        await api.updateTask(task.id, { experiment_ids: [copiedProtocol.id] });
+                        window.open(`experiment-detail.html?id=${copiedProtocol.id}`, '_blank', 'noopener');
+                    } catch (copyError) {
+                        console.error('Task was saved but Protocol copy failed:', copyError);
+                        showError('Task was saved. The Protocol copy failed; you can create or link one from the task menu.');
+                    }
+                }
+
+                // Reset form
+                document.getElementById('detailedTitle').value = '';
+                document.getElementById('detailedDescription').value = '';
+                document.getElementById('detailedDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('duplicateProtocolOnCreate').checked = false;
+                toggleDetailedForm();
+
+                await loadTasksForDate();
+                showSuccess(duplicateProtocol && experimentId ? 'Task added. Protocol copy opened in a new tab.' : 'Task added successfully!');
+            } catch (error) {
+                console.error('Error adding detailed task:', error);
+                showError('Failed to add task. Please try again.');
+            } finally {
+                detailedTaskSaving = false;
+                submitButton.disabled = false;
+                submitButton.textContent = 'Add Task';
+            }
+        }
+
+        // Toggle task completion
+        async function toggleTaskComplete(taskId, completed) {
+            try {
+                await api.updateTask(taskId, { completed: completed });
+                await loadTasksForDate();
+            } catch (error) {
+                console.error('Error updating task:', error);
+                showError('Failed to update task. Please try again.');
+            }
+        }
+
+        // Delete task
+        async function deleteTask(taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) {
+                return;
+            }
+
+            try {
+                await api.deleteTask(taskId);
+                await loadTasksForDate();
+                showSuccess('Task deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showError('Failed to delete task. Please try again.');
+            }
+        }
+
+        // Edit task - open modal with task data
+        function editTask(taskId) {
+            // Try to find task in both tasks and searchResults arrays
+            let task = tasks.find(t => t.id === taskId);
+            if (!task) {
+                task = searchResults.find(t => t.id === taskId);
+            }
+            if (!task) {
+                showError('Task not found');
+                return;
+            }
+
+            // Populate form fields with task data
+            document.getElementById('editTaskId').value = task.id;
+            document.getElementById('editTaskTitle').value = task.title || '';
+            document.getElementById('editTaskDescription').value = task.description || '';
+            document.getElementById('editTaskPriority').value = task.priority || 'normal';
+            document.getElementById('editTaskWorkflowStatus').value =
+                task.workflow_status === 'inbox' || task.workflow_status === 'completed' ? 'todo' : task.workflow_status;
+
+            // Set date (handle different date formats)
+            if (task.date) {
+                const dateStr = task.date.split('T')[0];
+                document.getElementById('editTaskDate').value = dateStr;
+            } else {
+                document.getElementById('editTaskDate').value = new Date().toISOString().split('T')[0];
+            }
+
+            // Populate dropdowns with current selections
+            populateEditDropdowns(task);
+
+            // Show modal
+            document.getElementById('editTaskModal').style.display = 'flex';
+        }
+
+        // Populate edit modal dropdowns
+        function populateEditDropdowns(task) {
+            // Populate monthly goals dropdown
+            const monthlySelect = document.getElementById('editMonthlyGoalSelect');
+            monthlySelect.innerHTML = '<option value="">None</option>' +
+                monthlyGoals.map(mg =>
+                    `<option value="${mg.id}" ${task.monthly_goal_id === mg.id ? 'selected' : ''}>${escapeHtml(mg.name)}</option>`
+                ).join('');
+
+            // Populate weekly goals dropdown
+            const weeklySelect = document.getElementById('editWeeklyGoalSelect');
+            weeklySelect.innerHTML = '<option value="">None</option>' +
+                weeklyGoals.map(wg =>
+                    `<option value="${wg.id}" ${task.weekly_goal_id === wg.id ? 'selected' : ''}>${escapeHtml(wg.name)}</option>`
+                ).join('');
+
+            // Populate experiments dropdown
+            const experimentSelect = document.getElementById('editExperimentSelect');
+            const currentExperimentId = task.experiments && task.experiments.length > 0 ? task.experiments[0].id : null;
+            experimentSelect.innerHTML = '<option value="">None - Simple task</option>' +
+                experiments.map(exp =>
+                    `<option value="${exp.id}" ${currentExperimentId === exp.id ? 'selected' : ''}>🧪 ${escapeHtml(exp.name)}</option>`
+                ).join('');
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editTaskModal').style.display = 'none';
+            // Reset form
+            document.getElementById('editTaskForm').reset();
+        }
+
+        // Save edited task
+        async function saveEditedTask(e) {
+            e.preventDefault();
+
+            const taskId = parseInt(document.getElementById('editTaskId').value);
+            const title = document.getElementById('editTaskTitle').value.trim();
+            const description = document.getElementById('editTaskDescription').value.trim();
+            const dateValue = document.getElementById('editTaskDate').value;
+            const monthlyGoalId = document.getElementById('editMonthlyGoalSelect').value;
+            const weeklyGoalId = document.getElementById('editWeeklyGoalSelect').value;
+            const experimentId = document.getElementById('editExperimentSelect').value;
+
+            if (!title) {
+                showError('Task title is required');
+                return;
+            }
+
+            const updateData = {
+                title: title,
+                description: description || null,
+                monthly_goal_id: monthlyGoalId ? parseInt(monthlyGoalId) : null,
+                weekly_goal_id: weeklyGoalId ? parseInt(weeklyGoalId) : null,
+                priority: document.getElementById('editTaskPriority').value,
+                workflow_status: document.getElementById('editTaskWorkflowStatus').value,
+                experiment_ids: experimentId ? [parseInt(experimentId)] : []
+            };
+
+            // Only include date if it was changed
+            if (dateValue) {
+                updateData.date = new Date(dateValue + 'T12:00:00').toISOString();
+            }
+
+            try {
+                await api.updateTask(taskId, updateData);
+                closeEditModal();
+                await loadTasksForDate();
+                showSuccess('Task updated successfully!');
+            } catch (error) {
+                console.error('Error updating task:', error);
+                showError('Failed to update task: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('editTaskModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('editTaskModal');
+                if (modal.style.display === 'flex') {
+                    closeEditModal();
+                }
+            }
+        });
+
+        // Handle dropdown changes
+        async function onProjectChange(selectElement) {
+            log.debug('onProjectChange called', { value: selectElement.value });
+            const value = selectElement.value;
+            if (value === 'new') {
+                log.debug('Creating new project...');
+                const name = prompt('Enter new project name:');
+                log.debug('User entered project name', { name });
+
+                if (name && name.trim()) {
+                    // Prompt for year range
+                    const startYearInput = prompt('Start year (leave empty for no limit):', selectedYear.toString());
+                    const endYearInput = prompt('End year (leave empty for ongoing):', '');
+
+                    try {
+                        log.debug('Creating project', { name: name.trim(), startYear: startYearInput, endYear: endYearInput });
+                        const project = await api.createProject({
+                            name: name.trim(),
+                            start_year: startYearInput ? parseInt(startYearInput) : null,
+                            end_year: endYearInput ? parseInt(endYearInput) : null
+                        });
+                        log.debug('Project created', { project });
+
+                        await loadProjects();
+                        log.debug('Projects reloaded', { count: projects.length });
+
+                        // Set the value to the new project
+                        selectElement.value = project.id;
+                        log.debug('Project dropdown set', { projectId: project.id });
+
+                        // Load annual goals for the new project
+                        await loadAnnualGoals(project.id);
+                        log.debug('Annual goals loaded');
+
+                        showSuccess('Project created!');
+                    } catch (error) {
+                        log.error('Failed to create project', { error: error.message });
+                        showError('Failed to create project: ' + (error.message || 'Unknown error'));
+                        selectElement.value = projects[0]?.id || '';
+                    }
+                } else if (name !== null) {
+                    log.debug('User entered empty project name');
+                    showError('Project name cannot be empty');
+                    selectElement.value = projects[0]?.id || '';
+                } else {
+                    log.debug('User cancelled project creation');
+                    selectElement.value = projects[0]?.id || '';
+                }
+            } else if (value) {
+                log.debug('Loading annual goals for project', { projectId: value });
+                await loadAnnualGoals(parseInt(value));
+            }
+        }
+
+        async function onAnnualGoalChange(selectElement) {
+            log.debug('onAnnualGoalChange called', { value: selectElement.value });
+            const value = selectElement.value;
+            if (value === 'new') {
+                log.debug('Creating new annual goal...');
+                const name = prompt('Enter new annual goal name:');
+                log.debug('User entered name', { name });
+
+                if (name && name.trim()) {
+                    const projectId = parseInt(document.getElementById('projectSelect').value);
+                    log.debug('Project ID', { projectId });
+
+                    if (!projectId) {
+                        showError('Please select a project first');
+                        selectElement.value = annualGoals[0]?.id || '';
+                        return;
+                    }
+                    try {
+                        log.debug('Creating annual goal', { name: name.trim(), project_id: projectId, year: new Date().getFullYear() });
+                        const goal = await api.createAnnualGoal({
+                            name: name.trim(),
+                            project_id: projectId,
+                            year: new Date().getFullYear()
+                        });
+                        log.debug('Annual goal created successfully', { goal });
+                        await loadAnnualGoals(projectId);
+                        selectElement.value = goal.id;
+                        await loadMonthlyGoals(goal.id);
+                        showSuccess('Annual goal created!');
+                    } catch (error) {
+                        log.error('Failed to create annual goal', { error: error.message });
+                        showError('Failed to create annual goal: ' + (error.message || 'Unknown error'));
+                        selectElement.value = annualGoals[0]?.id || '';
+                    }
+                } else if (name !== null) {
+                    // User clicked OK but entered empty name
+                    log.debug('User entered empty name');
+                    showError('Annual goal name cannot be empty');
+                    selectElement.value = annualGoals[0]?.id || '';
+                } else {
+                    // User clicked Cancel
+                    log.debug('User cancelled prompt');
+                    selectElement.value = annualGoals[0]?.id || '';
+                }
+            } else if (value) {
+                log.debug('Loading monthly goals for annual goal', { annualGoalId: value });
+                await loadMonthlyGoals(parseInt(value));
+            }
+        }
+
+        async function onMonthlyGoalChange(selectElement) {
+            log.debug('onMonthlyGoalChange called', { value: selectElement.value });
+            const value = selectElement.value;
+            if (value === 'new') {
+                log.debug('Creating new monthly goal...');
+                const name = prompt('Enter new monthly goal name:');
+                log.debug('User entered name', { name });
+
+                if (!name || !name.trim()) {
+                    if (name !== null) {
+                        log.debug('User entered empty name');
+                        showError('Monthly goal name cannot be empty');
+                    } else {
+                        log.debug('User cancelled prompt');
+                    }
+                    selectElement.value = monthlyGoals[0]?.id || '';
+                    return;
+                }
+
+                const annualGoalId = parseInt(document.getElementById('annualGoalSelect').value);
+                log.debug('Annual goal ID', { annualGoalId });
+
+                if (!annualGoalId) {
+                    showError('Please select an annual goal first');
+                    selectElement.value = monthlyGoals[0]?.id || '';
+                    return;
+                }
+
+                // Get today's date as default
+                const today = new Date().toISOString().split('T')[0];
+
+                const startDate = prompt('Start date (YYYY-MM-DD):', today);
+                log.debug('User entered start date', { startDate });
+                if (startDate === null) {
+                    log.debug('User cancelled start date prompt');
+                    selectElement.value = monthlyGoals[0]?.id || '';
+                    return;
+                }
+
+                // Validate date format
+                if (!isValidDate(startDate)) {
+                    log.debug('Invalid start date format', { startDate });
+                    showError('Invalid date format. Use YYYY-MM-DD (e.g., 2025-01-15)');
+                    selectElement.value = monthlyGoals[0]?.id || '';
+                    return;
+                }
+
+                // Default end date is 30 days after start
+                const defaultEndDate = new Date(startDate);
+                defaultEndDate.setDate(defaultEndDate.getDate() + 30);
+                const defaultEndStr = defaultEndDate.toISOString().split('T')[0];
+
+                const endDate = prompt('End date (YYYY-MM-DD):', defaultEndStr);
+                log.debug('User entered end date', { endDate });
+                if (endDate === null) {
+                    log.debug('User cancelled end date prompt');
+                    selectElement.value = monthlyGoals[0]?.id || '';
+                    return;
+                }
+
+                // Validate date format
+                if (!isValidDate(endDate)) {
+                    log.debug('Invalid end date format', { endDate });
+                    showError('Invalid date format. Use YYYY-MM-DD (e.g., 2025-02-15)');
+                    selectElement.value = monthlyGoals[0]?.id || '';
+                    return;
+                }
+
+                // Validate end date is after start date
+                if (new Date(endDate) < new Date(startDate)) {
+                    log.debug('End date before start date');
+                    showError('End date must be after start date');
+                    selectElement.value = monthlyGoals[0]?.id || '';
+                    return;
+                }
+
+                try {
+                    log.debug('Creating monthly goal', {
+                        name: name.trim(),
+                        annual_goal_id: annualGoalId,
+                        start_date: startDate,
+                        end_date: endDate,
+                        status: 'in-progress'
+                    });
+                    const goal = await api.createMonthlyGoal({
+                        name: name.trim(),
+                        annual_goal_id: annualGoalId,
+                        start_date: startDate,
+                        end_date: endDate,
+                        status: 'in-progress'
+                    });
+                    log.debug('Monthly goal created successfully', { goal });
+                    await loadMonthlyGoals(annualGoalId);
+                    selectElement.value = goal.id;
+                    currentMonthlyGoal = goal;
+                    showSuccess('Monthly goal created!');
+                } catch (error) {
+                    log.error('Failed to create monthly goal', { error: error.message });
+                    showError('Failed to create monthly goal: ' + (error.message || 'Unknown error'));
+                    selectElement.value = monthlyGoals[0]?.id || '';
+                }
+            } else if (value) {
+                log.debug('Selecting existing monthly goal', { monthlyGoalId: value });
+                currentMonthlyGoal = monthlyGoals.find(mg => mg.id === parseInt(value));
+            }
+        }
+
+        // Date validation helper
+        function isValidDate(dateString) {
+            const regex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!regex.test(dateString)) return false;
+            const date = new Date(dateString);
+            return date instanceof Date && !isNaN(date);
+        }
+
+        async function onWeeklyGoalChange(selectElement) {
+            const value = selectElement.value;
+            if (value === 'new') {
+                const name = prompt('Enter new weekly goal name:');
+                if (name) {
+                    const monthlyGoalId = document.getElementById('monthlyGoalSelect').value;
+                    if (!monthlyGoalId) {
+                        showError('Select a monthly milestone before creating a weekly plan.');
+                        selectElement.value = '';
+                        return;
+                    }
+                    const taskDate = document.getElementById('detailedDate').value || new Date().toISOString().split('T')[0];
+                    const weekStart = getWeekStart(new Date(taskDate + 'T12:00:00'));
+                    const weekEnd = new Date(weekStart);
+                    weekEnd.setDate(weekEnd.getDate() + 6);
+                    try {
+                        const goal = await api.createWeeklyGoal({
+                            name: name,
+                            monthly_goal_id: parseInt(monthlyGoalId),
+                            year: weekStart.getFullYear(),
+                            week_start: weekStart.toISOString().split('T')[0],
+                            week_end: weekEnd.toISOString().split('T')[0],
+                            status: 'in-progress'
+                        });
+                        await loadWeeklyGoals();
+                        selectElement.value = goal.id;
+                        showSuccess('Weekly goal created!');
+                    } catch (error) {
+                        showError('Failed to create weekly goal');
+                        selectElement.value = '';
+                    }
+                }
+            }
+        }
+
+        // Management panel functions
+        function toggleManagementPanel() {
+            const panel = document.getElementById('managementPanel');
+            const btn = document.getElementById('managementToggleBtn');
+
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                btn.textContent = 'Hide Management Panel';
+                renderManagementPanel();
+            } else {
+                panel.style.display = 'none';
+                btn.textContent = 'Show Management Panel';
+            }
+        }
+
+        async function renderManagementPanel() {
+            [managementProjects, managementAnnualGoals, managementMonthlyGoals, managementWeeklyGoals, managementTasks] = await Promise.all([
+                api.getProjects(selectedYear, managementShowArchived),
+                api.getAnnualGoals(null, selectedYear, managementShowArchived),
+                api.getMonthlyGoals(null, managementShowArchived),
+                api.getWeeklyGoals(null, null, managementShowArchived),
+                api.getTasks()
+            ]);
+            renderManagementComposer();
+            renderGoalsHierarchy();
+        }
+
+        async function setManagementArchiveVisibility(visible) {
+            managementShowArchived = visible;
+            await renderManagementPanel();
+        }
+
+        function hasManagementTask(field, id) {
+            return managementTasks.some(task => task[field] === id);
+        }
+
+        function canDeleteProject(project) {
+            return !managementAnnualGoals.some(goal => goal.project_id === project.id)
+                && !hasManagementTask('project_id', project.id);
+        }
+
+        function canDeleteAnnualGoal(goal) {
+            return !managementMonthlyGoals.some(monthlyGoal => monthlyGoal.annual_goal_id === goal.id)
+                && !hasManagementTask('annual_goal_id', goal.id);
+        }
+
+        function canDeleteMonthlyGoal(goal) {
+            return !managementWeeklyGoals.some(weeklyGoal => weeklyGoal.monthly_goal_id === goal.id)
+                && !hasManagementTask('monthly_goal_id', goal.id);
+        }
+
+        function canDeleteWeeklyGoal(goal) {
+            return !hasManagementTask('weekly_goal_id', goal.id);
+        }
+
+        function renderDeleteControl(type, id, name, canDelete) {
+            if (!canDelete) {
+                return '';
+            }
+            const handlers = {
+                project: 'deleteProjectConfirm',
+                annual: 'deleteAnnualGoalConfirm',
+                monthly: 'deleteMonthlyGoalConfirm',
+                weekly: 'deleteWeeklyGoalConfirm'
+            };
+            return `<button onclick="${handlers[type]}(${id}, '${escapeHtml(name)}')" style="background: #f56565; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">Delete</button>`;
+        }
+
+        function renderProjectsList() {
+            const container = document.getElementById('projectsList');
+            if (managementProjects.length === 0) {
+                container.innerHTML = '<p style="color: #718096; text-align: center;">No projects yet</p>';
+                return;
+            }
+
+            container.innerHTML = managementProjects.map(p => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 6px; margin-bottom: 8px;">
+                    <span style="font-weight: 500;">${escapeHtml(p.name)}</span>
+                    <span style="display: flex; gap: 8px;">
+                        <button onclick="setPlanNodeArchived('project', ${p.id}, '${escapeHtml(p.name)}', ${p.archived ? 'false' : 'true'})" style="background: #718096; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">${p.archived ? 'Restore' : 'Archive'}</button>
+                        ${renderDeleteControl('project', p.id, p.name, canDeleteProject(p))}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function renderWeeklyGoalsList() {
+            const container = document.getElementById('weeklyGoalsList');
+            if (managementWeeklyGoals.length === 0) {
+                container.innerHTML = '<p style="color: #718096; text-align: center;">No weekly goals yet</p>';
+                return;
+            }
+
+            container.innerHTML = managementWeeklyGoals.map(wg => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 6px; margin-bottom: 8px;">
+                    <span style="font-weight: 500;">${escapeHtml(wg.name)}</span>
+                    <span style="display: flex; gap: 8px;">
+                        <button onclick="setPlanNodeArchived('weekly', ${wg.id}, '${escapeHtml(wg.name)}', ${wg.archived ? 'false' : 'true'})" style="background: #718096; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85em;">${wg.archived ? 'Restore' : 'Archive'}</button>
+                        ${renderDeleteControl('weekly', wg.id, wg.name, canDeleteWeeklyGoal(wg))}
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function renderGoalsHierarchy() {
+            const container = document.getElementById('goalsHierarchy');
+
+            // Projects are already filtered by year in loadProjects(selectedYear)
+            if (managementProjects.length === 0) {
+                container.innerHTML = '<p style="color: #718096; text-align: center;">No projects for this year</p>';
+                return;
+            }
+
+            let html = '';
+            managementProjects.forEach(project => {
+                // Use lookup arrays to get ALL annual goals for this project (already filtered by year)
+                const projectAnnualGoals = managementAnnualGoals.filter(ag => ag.project_id === project.id);
+
+                html += `
+                    <div style="margin-bottom: 25px; background: white; padding: 15px; border-radius: 8px;">
+                        <div style="font-weight: 600; color: #2d3748; margin-bottom: 10px; font-size: 1.1em;">
+                            📁 ${escapeHtml(project.name)}
+                        </div>
+                `;
+
+                if (projectAnnualGoals.length === 0) {
+                    html += '<p style="color: #718096; margin-left: 20px; font-size: 0.9em;">No annual goals</p>';
+                } else {
+                    projectAnnualGoals.forEach(ag => {
+                        // Use lookup arrays to get ALL monthly goals for this annual goal
+                        const agMonthlyGoals = managementMonthlyGoals.filter(mg => mg.annual_goal_id === ag.id);
+
+                        html += `
+                            <div style="margin-left: 20px; margin-bottom: 15px; padding: 10px; background: #f7fafc; border-radius: 6px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <span style="font-weight: 500; color: #4a5568;">📊 ${escapeHtml(ag.name)} (${ag.year})</span>
+                                    <span style="display: flex; gap: 8px;">
+                                        <button onclick="setPlanNodeArchived('annual', ${ag.id}, '${escapeHtml(ag.name)}', ${ag.archived ? 'false' : 'true'})" style="background: #718096; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">${ag.archived ? 'Restore' : 'Archive'}</button>
+                                        ${renderDeleteControl('annual', ag.id, ag.name, canDeleteAnnualGoal(ag))}
+                                    </span>
+                                </div>
+                        `;
+
+                        if (agMonthlyGoals.length === 0) {
+                            html += '<p style="color: #718096; margin-left: 20px; font-size: 0.85em;">No monthly goals</p>';
+                        } else {
+                            agMonthlyGoals.forEach(mg => {
+                                const startDate = mg.start_date ? new Date(mg.start_date).toLocaleDateString() : 'N/A';
+                                const endDate = mg.end_date ? new Date(mg.end_date).toLocaleDateString() : 'N/A';
+                                const statusColor = mg.status === 'completed' ? '#48bb78' : mg.status === 'in-progress' ? '#ed8936' : mg.status === 'terminated' ? '#f56565' : '#718096';
+                                html += `
+                                    <div style="margin-left: 20px; margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                                        <span style="font-size: 0.9em; flex: 1;">
+                                            📅 ${escapeHtml(mg.name)}
+                                            <span style="color: #718096;">(${startDate} - ${endDate})</span>
+                                        </span>
+                                        <select onchange="changeMonthlyGoalStatus(${mg.id}, this.value, '${escapeHtml(mg.name)}', ${ag.id})"
+                                                style="padding: 4px 8px; border-radius: 4px; border: 1px solid #cbd5e0; background: white; cursor: pointer; font-size: 0.8em; color: ${statusColor}; font-weight: 600; min-width: 110px; max-width: 130px;">
+                                            <option value="planned" ${mg.status === 'planned' ? 'selected' : ''}>⏳ Planned</option>
+                                            <option value="in-progress" ${mg.status === 'in-progress' ? 'selected' : ''}>🔄 Progress</option>
+                                            <option value="completed" ${mg.status === 'completed' ? 'selected' : ''}>✅ Done</option>
+                                            <option value="terminated" ${mg.status === 'terminated' ? 'selected' : ''}>❌ Stopped</option>
+                                        </select>
+                                        <span style="display: flex; gap: 8px;">
+                                            <button onclick="setPlanNodeArchived('monthly', ${mg.id}, '${escapeHtml(mg.name)}', ${mg.archived ? 'false' : 'true'})" style="background: #718096; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75em;">${mg.archived ? 'Restore' : 'Archive'}</button>
+                                            ${renderDeleteControl('monthly', mg.id, mg.name, canDeleteMonthlyGoal(mg))}
+                                        </span>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        html += '</div>';
+                    });
+                }
+
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Compact tree implementation. This declaration intentionally follows the
+        // legacy renderer above so the management panel uses this focused view.
+        function managementDateValue(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getManagementDraftDates() {
+            const base = selectedDate instanceof Date ? new Date(selectedDate) : new Date();
+            const monthStart = new Date(base.getFullYear(), base.getMonth(), 1);
+            const monthEnd = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+            const weekStart = getWeekStart(new Date(base));
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekEnd.getDate() + 6);
+            return {
+                monthStart: managementDateValue(monthStart),
+                monthEnd: managementDateValue(monthEnd),
+                weekStart: managementDateValue(weekStart),
+                weekEnd: managementDateValue(weekEnd)
+            };
+        }
+
+        function openManagementCreate(type, parentId = null, parentName = '') {
+            managementComposer = { type, parentId, parentName };
+            renderManagementComposer();
+            document.getElementById('managementCreatePanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function closeManagementCreate() {
+            managementComposer = null;
+            renderManagementComposer();
+        }
+
+        function renderManagementComposer() {
+            const container = document.getElementById('managementCreatePanel');
+            if (!container) return;
+            if (!managementComposer) {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+
+            const { type, parentName } = managementComposer;
+            const dates = getManagementDraftDates();
+            const titles = {
+                project: 'New Project',
+                annual: 'New Annual Goal',
+                monthly: 'New Monthly Milestone',
+                weekly: 'New Weekly Plan'
+            };
+            let fields = `<div><label for="manageCreateName">Name</label><input id="manageCreateName" required placeholder="${type === 'project' ? 'e.g., Thesis project' : 'Enter a clear goal name'}"></div>`;
+            if (type === 'project' || type === 'annual') {
+                fields += `<div><label for="manageCreateYear">Year</label><input id="manageCreateYear" type="number" min="2000" max="2100" value="${selectedYear}"></div>`;
+            }
+            if (type === 'monthly') {
+                fields += `<div><label for="manageCreateStart">Start</label><input id="manageCreateStart" type="date" value="${dates.monthStart}" required></div><div><label for="manageCreateEnd">End</label><input id="manageCreateEnd" type="date" value="${dates.monthEnd}" required></div>`;
+            }
+            if (type === 'weekly') {
+                fields += `<div><label for="manageCreateStart">Start</label><input id="manageCreateStart" type="date" value="${dates.weekStart}" required></div><div><label for="manageCreateEnd">End</label><input id="manageCreateEnd" type="date" value="${dates.weekEnd}" required></div>`;
+            }
+
+            container.style.display = 'block';
+            container.innerHTML = `
+                <h3>${titles[type]}</h3>
+                <p>${type === 'project' ? 'Create a top-level research project.' : `Add under ${escapeHtml(parentName)}.`}</p>
+                <form onsubmit="submitManagementCreate(event)">
+                    <div class="management-create-fields">
+                        ${fields}
+                        <div class="management-create-actions"><button class="save" type="submit">Create</button><button class="cancel" type="button" onclick="closeManagementCreate()">Cancel</button></div>
+                    </div>
+                </form>`;
+        }
+
+        async function submitManagementCreate(event) {
+            event.preventDefault();
+            if (!managementComposer) return;
+            const { type, parentId } = managementComposer;
+            const name = document.getElementById('manageCreateName').value.trim();
+            const year = parseInt(document.getElementById('manageCreateYear')?.value) || selectedYear;
+            const startDate = document.getElementById('manageCreateStart')?.value;
+            const endDate = document.getElementById('manageCreateEnd')?.value;
+            if (!name) {
+                showError('Enter a name first.');
+                return;
+            }
+            if ((type === 'monthly' || type === 'weekly') && (!startDate || !endDate || startDate > endDate)) {
+                showError('Enter a valid start and end date.');
+                return;
+            }
+
+            try {
+                let created;
+                if (type === 'project') {
+                    created = await api.createProject({ name, start_year: year, end_year: year });
+                    activePlan = { projectId: created.id, annualGoalId: null, monthlyGoalId: null, weeklyGoalId: null };
+                } else if (type === 'annual') {
+                    created = await api.createAnnualGoal({ name, project_id: parentId, year });
+                    activePlan = { projectId: parentId, annualGoalId: created.id, monthlyGoalId: null, weeklyGoalId: null };
+                } else if (type === 'monthly') {
+                    created = await api.createMonthlyGoal({ name, annual_goal_id: parentId, start_date: startDate, end_date: endDate, status: 'planned' });
+                    const annualGoal = managementAnnualGoals.find(goal => goal.id === parentId);
+                    activePlan = { projectId: annualGoal?.project_id || null, annualGoalId: parentId, monthlyGoalId: created.id, weeklyGoalId: null };
+                } else {
+                    created = await api.createWeeklyGoal({ name, monthly_goal_id: parentId, year: parseInt(startDate.slice(0, 4)), week_start: startDate, week_end: endDate, status: 'planned' });
+                    const monthlyGoal = managementMonthlyGoals.find(goal => goal.id === parentId);
+                    const annualGoal = managementAnnualGoals.find(goal => goal.id === monthlyGoal?.annual_goal_id);
+                    activePlan = { projectId: annualGoal?.project_id || null, annualGoalId: annualGoal?.id || null, monthlyGoalId: parentId, weeklyGoalId: created.id };
+                }
+                saveActivePlan();
+                managementComposer = null;
+                await Promise.all([loadProjects(), loadWeeklyGoals(), loadAllGoalsForLookup()]);
+                await renderManagementPanel();
+                showSuccess(`${created.name} created.`);
+            } catch (error) {
+                console.error('Failed to create management node:', error);
+                showError('Failed to create this item: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        function renderArchiveControl(type, node) {
+            return `<button class="management-node-btn" onclick="setPlanNodeArchived('${type}', ${node.id}, '${escapeHtml(node.name)}', ${node.archived ? 'false' : 'true'})">${node.archived ? 'Restore' : 'Archive'}</button>`;
+        }
+
+        function renderGoalsHierarchy() {
+            const container = document.getElementById('goalsHierarchy');
+            if (managementProjects.length === 0) {
+                container.innerHTML = '<p style="color: #718096; text-align: center; padding: 20px;">No projects for this year. Create one to begin.</p>';
+                return;
+            }
+
+            const renderWeeklyNode = weeklyGoal => `
+                <div class="management-node management-node--weekly ${weeklyGoal.archived ? 'archived' : ''}">
+                    <div class="management-node-row">
+                        <span class="management-node-title ${taskSelectionMode ? 'management-assignment-target' : ''}" ${taskSelectionMode ? `onclick="assignSelectedTasksToWeeklyGoal(${weeklyGoal.id}, '${escapeHtml(weeklyGoal.name)}')" title="Assign selected tasks to this weekly goal"` : ''}>Week · ${escapeHtml(weeklyGoal.name)} <span class="management-node-meta">${weeklyGoal.week_start} – ${weeklyGoal.week_end}</span></span>
+                        <span class="management-node-actions">${renderArchiveControl('weekly', weeklyGoal)}${renderDeleteControl('weekly', weeklyGoal.id, weeklyGoal.name, canDeleteWeeklyGoal(weeklyGoal))}</span>
+                    </div>
+                </div>`;
+
+            const renderMonthlyNode = monthlyGoal => {
+                const weeklyGoals = managementWeeklyGoals.filter(goal => goal.monthly_goal_id === monthlyGoal.id);
+                return `
+                    <div class="management-node management-node--monthly ${monthlyGoal.archived ? 'archived' : ''}">
+                        <div class="management-node-row">
+                            <span class="management-node-title">Month · ${escapeHtml(monthlyGoal.name)} <span class="management-node-meta">${monthlyGoal.start_date} – ${monthlyGoal.end_date}</span></span>
+                            <span class="management-node-actions">
+                                <select class="management-status-select" onchange="changeMonthlyGoalStatus(${monthlyGoal.id}, this.value, '${escapeHtml(monthlyGoal.name)}', ${monthlyGoal.annual_goal_id})">
+                                    <option value="planned" ${monthlyGoal.status === 'planned' ? 'selected' : ''}>Planned</option><option value="in-progress" ${monthlyGoal.status === 'in-progress' ? 'selected' : ''}>In progress</option><option value="completed" ${monthlyGoal.status === 'completed' ? 'selected' : ''}>Done</option><option value="terminated" ${monthlyGoal.status === 'terminated' ? 'selected' : ''}>Stopped</option>
+                                </select>
+                                <button class="management-node-btn" onclick="openManagementCreate('weekly', ${monthlyGoal.id}, '${escapeHtml(monthlyGoal.name)}')">+ Week</button>
+                                ${renderArchiveControl('monthly', monthlyGoal)}${renderDeleteControl('monthly', monthlyGoal.id, monthlyGoal.name, canDeleteMonthlyGoal(monthlyGoal))}
+                            </span>
+                        </div>
+                        ${weeklyGoals.length ? `<div class="management-node-children">${weeklyGoals.map(renderWeeklyNode).join('')}</div>` : ''}
+                    </div>`;
+            };
+
+            const renderAnnualNode = annualGoal => {
+                const monthlyGoals = managementMonthlyGoals.filter(goal => goal.annual_goal_id === annualGoal.id);
+                return `
+                    <div class="management-node management-node--annual ${annualGoal.archived ? 'archived' : ''}">
+                        <div class="management-node-row">
+                            <span class="management-node-title">Annual · ${escapeHtml(annualGoal.name)} <span class="management-node-meta">${annualGoal.year}</span></span>
+                            <span class="management-node-actions"><button class="management-node-btn" onclick="openManagementCreate('monthly', ${annualGoal.id}, '${escapeHtml(annualGoal.name)}')">+ Month</button>${renderArchiveControl('annual', annualGoal)}${renderDeleteControl('annual', annualGoal.id, annualGoal.name, canDeleteAnnualGoal(annualGoal))}</span>
+                        </div>
+                        ${monthlyGoals.length ? `<div class="management-node-children">${monthlyGoals.map(renderMonthlyNode).join('')}</div>` : ''}
+                    </div>`;
+            };
+
+            container.innerHTML = managementProjects.map(project => {
+                const annualGoals = managementAnnualGoals.filter(goal => goal.project_id === project.id);
+                return `
+                    <div class="management-node management-node--project ${project.archived ? 'archived' : ''}">
+                        <div class="management-node-row">
+                            <span class="management-node-title">Project · ${escapeHtml(project.name)}</span>
+                            <span class="management-node-actions"><button class="management-node-btn" onclick="openManagementCreate('annual', ${project.id}, '${escapeHtml(project.name)}')">+ Annual</button>${renderArchiveControl('project', project)}${renderDeleteControl('project', project.id, project.name, canDeleteProject(project))}</span>
+                        </div>
+                        ${annualGoals.length ? `<div class="management-node-children">${annualGoals.map(renderAnnualNode).join('')}</div>` : ''}
+                    </div>`;
+            }).join('');
+        }
+
+        // Delete confirmation functions
+        async function setPlanNodeArchived(type, id, name, archived) {
+            const action = archived ? 'Archive' : 'Restore';
+            if (!confirm(`${action} ${type} "${name}"?\n\nHistorical tasks, Protocols, reports, and Gantt history will be preserved.`)) {
+                return;
+            }
+            try {
+                if (type === 'project') await api.updateProject(id, { archived });
+                if (type === 'annual') await api.updateAnnualGoal(id, { archived });
+                if (type === 'monthly') await api.updateMonthlyGoal(id, { archived });
+                if (type === 'weekly') await api.updateWeeklyGoal(id, { archived });
+                await Promise.all([loadProjects(), loadWeeklyGoals(), loadAllGoalsForLookup()]);
+                refreshPlanningWorkspace();
+                renderManagementPanel();
+                showSuccess(`${name} ${archived ? 'archived' : 'restored'}. Historical records were preserved.`);
+            } catch (error) {
+                console.error('Failed to archive planning node:', error);
+                showError('Failed to archive this item: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function deleteProjectConfirm(id, name) {
+            if (!confirm(`Delete empty project "${name}"?\n\nThis action is only available when the project has no goals or tasks.`)) {
+                return;
+            }
+
+            try {
+                await api.deleteProject(id);
+                await loadProjects();
+                renderManagementPanel();
+                showSuccess('Project deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting project:', error);
+                showError('Failed to delete project: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function deleteAnnualGoalConfirm(id, name) {
+            if (!confirm(`Delete empty annual goal "${name}"?\n\nThis action is only available when the goal has no child goals or tasks.`)) {
+                return;
+            }
+
+            try {
+                await api.deleteAnnualGoal(id);
+                // Reload all goals to refresh the hierarchy
+                const projectId = annualGoals.find(ag => ag.id === id)?.project_id;
+                if (projectId) {
+                    await loadAnnualGoals(projectId);
+                }
+                renderManagementPanel();
+                showSuccess('Annual goal deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting annual goal:', error);
+                showError('Failed to delete annual goal: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function changeMonthlyGoalStatus(id, newStatus, name, annualGoalId) {
+            try {
+                await api.updateMonthlyGoalStatus(id, newStatus);
+                // Reload monthly goals if we have an annual goal ID
+                if (annualGoalId) {
+                    await loadMonthlyGoals(annualGoalId);
+                }
+                renderManagementPanel();
+                showSuccess(`Status updated to "${newStatus}" for "${name}"`);
+            } catch (error) {
+                console.error('Error updating monthly goal status:', error);
+                showError('Failed to update status: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function deleteMonthlyGoalConfirm(id, name) {
+            if (!confirm(`Delete empty monthly goal "${name}"?\n\nThis action is only available when the goal has no weekly plans or tasks.`)) {
+                return;
+            }
+
+            try {
+                await api.deleteMonthlyGoal(id);
+                // Reload monthly goals
+                const annualGoalId = monthlyGoals.find(mg => mg.id === id)?.annual_goal_id;
+                if (annualGoalId) {
+                    await loadMonthlyGoals(annualGoalId);
+                }
+                renderManagementPanel();
+                showSuccess('Monthly goal deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting monthly goal:', error);
+                showError('Failed to delete monthly goal: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        async function deleteWeeklyGoalConfirm(id, name) {
+            if (!confirm(`Delete empty weekly plan "${name}"?\n\nThis action is only available when the weekly plan has no tasks.`)) {
+                return;
+            }
+
+            try {
+                await api.deleteWeeklyGoal(id);
+                await loadWeeklyGoals();
+                renderManagementPanel();
+                showSuccess('Weekly goal deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting weekly goal:', error);
+                showError('Failed to delete weekly goal: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showSuccess(message) {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #48bb78; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        function showError(message) {
+            const div = document.createElement('div');
+            div.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #f56565; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10000;';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 4000);
+        }
+
+        // Task-Experiment redirect functions
+        async function handleTaskClick(taskId) {
+            try {
+                // Try to find task in both tasks and searchResults arrays
+                let task = tasks.find(t => t.id === taskId);
+                if (!task) {
+                    task = searchResults.find(t => t.id === taskId);
+                }
+
+                if (!task || !task.experiments || task.experiments.length === 0) {
+                    return; // No experiments linked
+                }
+
+                if (task.experiments.length === 1) {
+                    window.location.href = `experiment-detail.html?id=${task.experiments[0].id}`;
+                } else {
+                    showExperimentSelectionModal(task.experiments);
+                }
+            } catch (error) {
+                console.error('Error handling task click:', error);
+            }
+        }
+
+        function showExperimentSelectionModal(experiments) {
+            const modal = document.getElementById('experimentSelectionModal');
+            const listContainer = document.getElementById('experimentSelectionList');
+
+            listContainer.innerHTML = experiments.map(exp => `
+                <div class="experiment-selection-item" onclick="navigateToExperiment(${exp.id})">
+                    <div style="font-weight: 600; color: #2d3748; margin-bottom: 5px;">${escapeHtml(exp.name)}</div>
+                    <div style="font-size: 0.85em; color: #718096;">Status: ${exp.status}</div>
+                </div>
+            `).join('');
+
+            modal.style.display = 'flex';
+        }
+
+        function closeExperimentSelectionModal() {
+            document.getElementById('experimentSelectionModal').style.display = 'none';
+        }
+
+        function navigateToExperiment(experimentId) {
+            window.location.href = `experiment-detail.html?id=${experimentId}`;
+        }
+
+        // Export daily report to Word
+        async function exportDailyToWord() {
+            const dateStr = selectedDate.toISOString().split('T')[0];
+
+            try {
+                const response = await fetch(`/api/export/word/daily?date=${dateStr}`);
+
+                if (!response.ok) {
+                    throw new Error('Export failed');
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `daily_report_${dateStr}.docx`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                showSuccess('Daily report exported to Word successfully!');
+            } catch (error) {
+                console.error('Error exporting to Word:', error);
+                showError('Failed to export to Word: ' + (error.message || 'Unknown error'));
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', initializePage);
+
+        document.getElementById('quickInput').addEventListener('keypress', async function(e) {
+            if (e.key === 'Enter') {
+                await addQuickTodo();
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('#quickProtocolPicker')) {
+                const menu = document.getElementById('quickProtocolMenu');
+                if (menu) menu.style.display = 'none';
+            }
+        });
+    </script>
+
+    <!-- Experiment Selection Modal -->
+    <div id="experimentSelectionModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h3>Select Protocol to View</h3>
+                <button class="close-btn" onclick="closeExperimentSelectionModal()">&times;</button>
+            </div>
+            <div id="experimentSelectionList" style="margin-top: 20px;"></div>
+        </div>
+    </div>
+</body>
+</html>
