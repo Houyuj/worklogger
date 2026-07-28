@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-labelledby="title description">
+  <title id="title">WorkLogger scientific research workbench</title>
+  <desc id="description">A soft green scientific cartoon banner with a laboratory flask, research notes, timeline cards, and the WorkLogger title.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef7f3"/>
+      <stop offset="0.55" stop-color="#f8faf8"/>
+      <stop offset="1" stop-color="#edf4f7"/>
+    </linearGradient>
+    <linearGradient id="liquid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fdcc6"/>
+      <stop offset="1" stop-color="#4fae95"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#345b55" flood-opacity="0.13"/>
+    </filter>
+  </defs>
+
+  <rect x="8" y="8" width="1184" height="324" rx="34" fill="url(#background)" stroke="#d4e4df" stroke-width="2"/>
+
+  <g opacity="0.48" fill="#9bc8bc">
+    <circle cx="54" cy="52" r="4"/>
+    <circle cx="1129" cy="57" r="5"/>
+    <circle cx="1160" cy="271" r="3"/>
+    <circle cx="311" cy="48" r="3"/>
+    <circle cx="843" cy="293" r="4"/>
+  </g>
+
+  <g transform="translate(54 48)" filter="url(#shadow)">
+    <rect x="0" y="0" width="196" height="244" rx="26" fill="#ffffff" stroke="#cfe0dc" stroke-width="2"/>
+    <path d="M77 37h42M88 37v47l-42 82c-13 27 5 47 32 47h42c28 0 45-21 32-47l-43-82V37" fill="none" stroke="#355c57" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M59 160c18-12 35 10 57-2 12-6 23-5 33 1l8 20c7 18-6 32-25 32H67c-19 0-31-14-23-32z" fill="url(#liquid)" opacity="0.96"/>
+    <g fill="#d9f2ea" stroke="#4fae95" stroke-width="2">
+      <circle cx="77" cy="179" r="8"/>
+      <circle cx="109" cy="190" r="5"/>
+      <circle cx="127" cy="174" r="7"/>
+      <circle cx="96" cy="137" r="6"/>
+      <circle cx="123" cy="117" r="4"/>
+    </g>
+    <path d="M28 68c16-19 33-22 49-10" fill="none" stroke="#f0b85c" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="29" cy="67" r="7" fill="#f4c978"/>
+  </g>
+
+  <g transform="translate(292 67)">
+    <text x="0" y="61" fill="#263c42" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="750">WorkLogger</text>
+    <text x="3" y="99" fill="#587078" font-family="Segoe UI, Arial, sans-serif" font-size="23">A local research workbench for plans, tasks &amp; Protocols</text>
+
+    <g transform="translate(0 139)" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="650">
+      <rect x="0" y="0" width="164" height="42" rx="21" fill="#dff2eb" stroke="#b8dacf"/>
+      <text x="24" y="27" fill="#356b5e">🔒 Local data</text>
+      <rect x="177" y="0" width="196" height="42" rx="21" fill="#e8eef8" stroke="#c8d5e7"/>
+      <text x="199" y="27" fill="#486482">🧪 Protocol-first</text>
+      <rect x="386" y="0" width="193" height="42" rx="21" fill="#fff2d9" stroke="#ecd7a8"/>
+      <text x="408" y="27" fill="#796033">📊 Report-ready</text>
+    </g>
+
+    <g transform="translate(3 215)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 0h520" stroke="#c8d9d5" stroke-width="4"/>
+      <circle cx="0" cy="0" r="9" fill="#4fae95" stroke="#ffffff" stroke-width="3"/>
+      <circle cx="173" cy="0" r="9" fill="#7da3c8" stroke="#ffffff" stroke-width="3"/>
+      <circle cx="346" cy="0" r="9" fill="#f0b85c" stroke="#ffffff" stroke-width="3"/>
+      <circle cx="520" cy="0" r="9" fill="#7fcf9b" stroke="#ffffff" stroke-width="3"/>
+    </g>
+    <g transform="translate(0 247)" fill="#657980" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="650">
+      <text x="0">Project</text>
+      <text x="142">Goals</text>
+      <text x="321">Tasks</text>
+      <text x="485">Results</text>
+    </g>
+  </g>
+
+  <g transform="translate(920 52)" filter="url(#shadow)">
+    <rect x="0" y="18" width="218" height="230" rx="24" fill="#ffffff" stroke="#cfdedb" stroke-width="2"/>
+    <rect x="25" y="0" width="168" height="55" rx="16" fill="#5b827a"/>
+    <circle cx="63" cy="27" r="7" fill="#f6ce7e"/>
+    <circle cx="89" cy="27" r="7" fill="#95d9c5"/>
+    <circle cx="115" cy="27" r="7" fill="#a9c5e0"/>
+    <path d="M31 89h156" stroke="#dce7e4" stroke-width="3" stroke-linecap="round"/>
+    <g font-family="Segoe UI, Arial, sans-serif">
+      <rect x="31" y="110" width="14" height="14" rx="4" fill="#8fdcc6"/>
+      <path d="m34 117 4 4 8-10" fill="none" stroke="#2e6659" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="57" y="123" fill="#40565d" font-size="15" font-weight="650">Plan experiment</text>
+
+      <rect x="31" y="148" width="14" height="14" rx="4" fill="#a9c5e0"/>
+      <path d="m34 155 4 4 8-10" fill="none" stroke="#405f7d" stroke-width="2.5" stroke-linecap="round"/>
+      <text x="57" y="161" fill="#40565d" font-size="15" font-weight="650">Link Protocol</text>
+
+      <rect x="31" y="186" width="14" height="14" rx="4" fill="#f6ce7e"/>
+      <text x="57" y="199" fill="#40565d" font-size="15" font-weight="650">Review progress</text>
+    </g>
+    <path d="M31 222h78" stroke="#8fdcc6" stroke-width="8" stroke-linecap="round"/>
+    <path d="M119 222h68" stroke="#dbe6e3" stroke-width="8" stroke-linecap="round"/>
+  </g>
+</svg>

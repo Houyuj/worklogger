@@ -1,10 +1,10 @@
 # WorkLogger Implementation Status
 
-Updated: 2026-07-28
+Updated: 2026-07-29
 
 ## Current product scope
 
-WorkLogger is a local, desktop-first personal research manager. The product is optimized for one research lead managing multiple projects, research goals, tasks, and reusable Protocols. The data model keeps room for future collaboration, but there are no accounts, permissions, team workflows, or collaboration screens.
+WorkLogger is a local, desktop-first personal research manager. The product supports password-free local user profiles with fully isolated databases. It does not implement authentication, permissions, team workflows, or collaboration screens.
 
 ## Implemented
 
@@ -48,18 +48,22 @@ WorkLogger is a local, desktop-first personal research manager. The product is o
 - Overlapping bars receive separate lanes.
 - Dynamic 52/53-week ISO year header.
 - Timeline header, left labels, and paired goal rows are height-synchronized.
-- High-resolution PNG export: all projects or one Project in Year view; full current month in Month view.
+- Presentation-ready 16:9 high-resolution PNG export with visible ISO-week ticks and a status legend.
+- Smart Year range crops empty leading/trailing months and can be disabled for January–December; Year supports all Projects or one Project, while Month exports the full current month.
 
 ### Runtime and data
 
 - FastAPI API serving static frontend files.
-- SQLite database with startup schema additions for current fields.
+- One isolated SQLite database per local user, selected on every API request.
+- User creation, switching, database export, retained-database deletion flow, and database merging/import.
+- Protocol title conflict handling during import: append the source user name and, if necessary, a number.
+- Startup schema additions are applied to every active user database.
 - Windows setup and launcher scripts using a local `.venv`.
 - Local data, backups, logs, and virtual environments are ignored by Git.
 
 ## Deliberately deferred
 
-- User accounts and collaboration UI.
+- Password authentication, permissions, and collaboration UI.
 - Mobile layout.
 - Automatic task outcome extraction from Protocol body.
 - Global keyboard shortcuts while planning semantics are still evolving.
@@ -70,6 +74,8 @@ WorkLogger is a local, desktop-first personal research manager. The product is o
 - Dashboard Protocol picker and task-selection interactions.
 - Quick Edit field set: Title, Status, Progress note only.
 - Gantt 53-week header and left/right row alignment.
+- User switching and empty-database isolation through the live interface.
+- Full hierarchy/database merge with Protocol collision renaming and retained database handling.
 - Frontend JavaScript syntax checks for all HTML pages.
 
 See [TESTING.md](TESTING.md) for the current manual regression checklist.

@@ -2,6 +2,10 @@ from pydantic import BaseModel
 from typing import Literal, Optional, List
 from datetime import datetime, date
 
+# Local user schemas
+class UserCreate(BaseModel):
+    name: str
+
 # Project schemas
 class ProjectBase(BaseModel):
     name: str

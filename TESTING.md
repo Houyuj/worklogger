@@ -40,7 +40,7 @@ Run this checklist before committing a feature that changes the local app. Use d
 
 - [ ] Open a Weekly Report task and edit it inline without leaving Reports.
 - [ ] Click a linked Protocol and confirm it opens in a new tab.
-- [ ] Export a report as Excel and confirm the file opens in Excel.
+- [ ] Export a report as Excel and confirm the file opens in Excel and belongs to the selected user.
 - [ ] Export a report as PDF and confirm the file renders.
 
 ## Gantt
@@ -50,11 +50,26 @@ Run this checklist before committing a feature that changes the local app. Use d
 - [ ] Project and Annual Goal rows on the left match the corresponding timeline heights on the right.
 - [ ] Month view renders dated Weekly Goals and handles overlap lanes.
 - [ ] Year view Export PNG offers All projects and individual Project choices; both downloads include complete, unscrolled content.
+- [ ] Smart range crops empty leading and trailing months; disabling it restores the full January–December range.
+- [ ] Year export contains visible ISO-week ticks and the five-item status legend.
+- [ ] Exported PNG is a readable 16:9 image at 3840 × 2160 output resolution.
 - [ ] Month view Export PNG is locked to Full month (all projects) and downloads a complete current-month image.
+
+## Local users and databases
+
+- [ ] Create an empty user and confirm Today, Projects, Goals, Tasks, Protocols, Reports, and Gantt contain no records from the source user.
+- [ ] Switch back to the original user and confirm its records are unchanged.
+- [ ] Create a user by merging another active user's database; confirm hierarchy, tasks, Protocols, tags, and task–Protocol links are present.
+- [ ] Create a Protocol with the same title in the destination before merging; confirm the imported title becomes `Title (Source user)`.
+- [ ] Import a compatible external WorkLogger `.db` file and verify the source user name is used for Protocol collision handling.
+- [ ] Delete a user and confirm **Remove user, keep database** is the focused default action.
+- [ ] Export a retained database and merge it into an active user.
+- [ ] Confirm permanent deletion requires the separate **Delete user and database** action.
+- [ ] Confirm the last active user cannot be deleted.
 
 ## Technical smoke checks
 
 - [ ] Browser console has no uncaught errors while loading Today, Protocols, Reports, and Gantt.
 - [ ] `python verify_setup.py` passes inside `.venv`.
-- [ ] SQLite data remains in `data/worklogger.db` and is not staged by `git status`.
+- [ ] `data/worklogger.db`, `data/users/`, `data/retained/`, and `data/users.json` are not staged by `git status`.
 - [ ] `git diff --check` reports no whitespace errors before commit.

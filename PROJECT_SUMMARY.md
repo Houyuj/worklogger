@@ -1,6 +1,6 @@
 # WorkLogger Project Summary
 
-Updated: 2026-07-28
+Updated: 2026-07-29
 
 ## Purpose
 
@@ -31,7 +31,9 @@ frontend/              Vanilla HTML, CSS, JavaScript
   reports.html         Review and exports
   gantt.html           Year/month timeline
 backend/               FastAPI + SQLAlchemy
-data/worklogger.db     Local SQLite data (ignored by Git)
+data/worklogger.db     Original User's local SQLite data (ignored by Git)
+data/users/            Isolated databases for additional local users
+data/retained/         Databases retained after user removal
 launcher.py            Local server/browser launcher
 setup.bat / run.bat    Windows setup and run entry points
 ```
@@ -40,14 +42,16 @@ The HTTP API and SQLite schema retain legacy `experiment` names for backwards co
 
 ## Key design choices
 
-- Personal-first and desktop-first; no account or team UI.
+- Personal-first and desktop-first; password-free local user switching, with no roles or team collaboration UI.
+- Each local user has an independent database; imported databases are merged by remapping all IDs and relationships.
+- Imported Protocol title collisions append the source user name.
 - English product UI; Chinese product discussion and user guide are supported.
 - Fast capture first, classification later.
 - A Protocol is linked by title search instead of a mandatory category taxonomy.
 - Protocol content is a single rich-text body rather than fragmented result fields.
 - Archive preserves research history; delete protects populated planning nodes.
 - Excel is the primary editable report handoff; PDF remains for read-only sharing.
-- Gantt can export a standalone high-resolution PNG for a full year, one Project, or the full current month.
+- Gantt exports a standalone 16:9 high-resolution PNG with ISO-week ticks and a status legend. Year view supports smart edge-month cropping, full-year output, or one-Project scope; Month view exports the full current month.
 
 ## Current version-control practice
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
@@ -8,15 +8,29 @@ from datetime import datetime, timedelta
 import os
 import io
 import json
+from pathlib import Path
+import tempfile
 import uuid
 
-from . import models, schemas, crud
-from .database import apply_schema_migrations, engine, get_db
+from . import models, schemas, crud, user_service
+from .database import (
+    DATA_DIR,
+    create_user as create_local_user,
+    delete_user as delete_local_user,
+    get_db,
+    get_retained_database_path,
+    get_retained_record,
+    get_user_database_path,
+    get_user_engine,
+    get_user_record,
+    initialize_all_user_databases,
+    list_retained_databases,
+    list_users,
+)
 from .logger import logger
 
-# Create database tables
-models.Base.metadata.create_all(bind=engine)
-apply_schema_migrations()
+# Create and migrate every active user's isolated database.
+initialize_all_user_databases(models.Base)
 
 app = FastAPI(title="Work Logger API", version="1.0.0")
 
@@ -28,6 +42,165 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ========== Local User Endpoints ==========
+@app.get("/api/users/")
+def get_local_users():
+    users = list_users()
+    return {
+        "users": users,
+        "retained_databases": list_retained_databases(),
+        "default_user_id": users[0]["id"],
+    }
+
+
+@app.post("/api/users/")
+def create_user(user: schemas.UserCreate):
+    try:
+        return create_local_user(user.name, models.Base)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+
+@app.delete("/api/users/{user_id}")
+def delete_user(user_id: str, keep_database: bool = True):
+    try:
+        return delete_local_user(user_id, keep_database=keep_database)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="User not found")
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+
+def _safe_download_name(value: str) -> str:
+    safe_name = "".join(
+        character if character.isalnum() or character in (" ", "-", "_") else "_"
+        for character in value
+    ).strip()
+    return safe_name or "WorkLogger"
+
+
+@app.get("/api/users/{user_id}/database")
+def export_user_database(user_id: str):
+    try:
+        user = get_user_record(user_id)
+        database_path = get_user_database_path(user_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not database_path.exists():
+        raise HTTPException(status_code=404, detail="User database not found")
+    return FileResponse(
+        database_path,
+        media_type="application/vnd.sqlite3",
+        filename=f"{_safe_download_name(user['name'])}-worklogger.db",
+    )
+
+
+@app.get("/api/users/retained/{record_id}/database")
+def export_retained_database(record_id: str):
+    try:
+        record = get_retained_record(record_id)
+        database_path = get_retained_database_path(record_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Retained database not found")
+    if not database_path.exists():
+        raise HTTPException(status_code=404, detail="Retained database file not found")
+    return FileResponse(
+        database_path,
+        media_type="application/vnd.sqlite3",
+        filename=f"{_safe_download_name(record['name'])}-worklogger-retained.db",
+    )
+
+
+def _merge_database_into_user(
+    target_user_id: str,
+    source_path: Path,
+    source_username: str,
+):
+    try:
+        get_user_record(target_user_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Target user not found")
+
+    destination_db = Session(bind=get_user_engine(target_user_id))
+    try:
+        counts = user_service.merge_database(
+            source_path,
+            destination_db,
+            source_username,
+        )
+        return {
+            "message": "Database merged successfully",
+            "source_username": source_username,
+            "counts": counts,
+        }
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    finally:
+        destination_db.close()
+
+
+@app.post("/api/users/{target_user_id}/import-database")
+async def import_user_database(
+    target_user_id: str,
+    source_username: str = Form(...),
+    database_file: UploadFile = File(...),
+):
+    suffix = Path(database_file.filename or "import.db").suffix or ".db"
+    temporary_path = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="wb",
+            suffix=suffix,
+            dir=DATA_DIR,
+            delete=False,
+        ) as temporary_file:
+            temporary_path = Path(temporary_file.name)
+            while chunk := await database_file.read(1024 * 1024):
+                temporary_file.write(chunk)
+        return _merge_database_into_user(
+            target_user_id,
+            temporary_path,
+            source_username,
+        )
+    finally:
+        await database_file.close()
+        if temporary_path:
+            temporary_path.unlink(missing_ok=True)
+
+
+@app.post("/api/users/{target_user_id}/merge-user/{source_user_id}")
+def merge_active_user_database(target_user_id: str, source_user_id: str):
+    if target_user_id == source_user_id:
+        raise HTTPException(
+            status_code=400,
+            detail="A user database cannot be merged into itself",
+        )
+    try:
+        source_user = get_user_record(source_user_id)
+        source_path = get_user_database_path(source_user_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Source user not found")
+    return _merge_database_into_user(
+        target_user_id,
+        source_path,
+        source_user["name"],
+    )
+
+
+@app.post("/api/users/{target_user_id}/merge-retained/{record_id}")
+def merge_retained_database(target_user_id: str, record_id: str):
+    try:
+        retained_record = get_retained_record(record_id)
+        source_path = get_retained_database_path(record_id)
+    except KeyError:
+        raise HTTPException(status_code=404, detail="Retained database not found")
+    return _merge_database_into_user(
+        target_user_id,
+        source_path,
+        retained_record["name"],
+    )
+
 
 # ========== Project Endpoints ==========
 @app.post("/api/projects/", response_model=schemas.Project)

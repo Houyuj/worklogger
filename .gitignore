@@ -30,6 +30,10 @@ ENV/
 data/*.db
 data/*.db-journal
 data/*.db.backup
+data/users.json
+data/users/
+data/retained/
+data/*.tmp
 
 # IDEs
 .vscode/

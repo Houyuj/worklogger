@@ -76,11 +76,18 @@ Gantt 用于偶尔确认月度目标的时间分布、进度和空档。
 - Year view 显示 52 或 53 个 ISO 周，不会把第 53 周折到行首。
 - Month view 侧重当前月的 Weekly Goals。
 - 左侧目标行与右侧时间条会同步高度。
-- 点击 **Export PNG** 可导出高清完整图片。年度视角可选择 All projects 或单个 Project；月度视角固定导出当前月的完整内容。
+- 点击 **Export PNG** 可导出 16:9 高清图片。年度视角可选择 All projects 或单个 Project，保留 ISO 周刻度和状态图例；默认开启的 **Smart range** 会裁去两端没有目标排期的空月份，关闭后恢复 1–12 月。月度视角固定导出当前月完整内容。
 
 ## 数据与备份
 
-数据保存在 `data/worklogger.db`。它不会进入 Git，也不会被推送到 GitHub。
+右上角用户下拉框用于切换本地用户，齿轮按钮打开 **Manage Local Users**。这里不需要密码，每个用户对应完全独立的 SQLite 数据库。
+
+- 新用户可以使用空数据库，也可以合并现有用户、已保留用户或外部 `.db` 文件的数据。
+- 导入时若 Protocol 标题重名，导入项会自动改为 `原标题 (旧用户名)`；若仍重名则继续添加序号。
+- 删除用户时默认操作是 **Remove user, keep database**。用户入口会被移除，但数据库仍可导出或合并到其他用户。
+- **Delete user and database** 才会永久删除数据库。
+
+原始 `User` 数据保存在 `data/worklogger.db`；新增用户数据库位于 `data/users/`，删除后选择保留的数据库位于 `data/retained/`。这些文件都不会进入 Git，也不会推送到 GitHub。
 
 手工备份前先退出应用，然后复制数据库文件：
 
@@ -88,7 +95,7 @@ Gantt 用于偶尔确认月度目标的时间分布、进度和空档。
 Copy-Item .\data\worklogger.db .\data\worklogger.db.backup
 ```
 
-恢复时先退出 WorkLogger，再把备份覆盖回 `data/worklogger.db`。
+恢复时先退出 WorkLogger，再恢复对应用户的数据库文件。日常分享优先使用 Manage Local Users 中的 **Export DB**。
 
 ## 推荐节奏
 

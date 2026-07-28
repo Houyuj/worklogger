@@ -50,7 +50,7 @@ Open **Protocols** when you need to create, copy, or maintain a reusable procedu
 ## 6. Review
 
 - Use **Reports** for weekly/monthly review and Excel/PDF export.
-- Use **Gantt** for a visual check of dated goals. It supports year and month views, plus high-resolution PNG export. In Year view choose all projects or a single Project; Month view always exports the full current month.
+- Use **Gantt** for a visual check of dated goals. Year export supports all Projects or one Project, visible ISO-week ticks, a status legend, and a presentation-ready 16:9 PNG. Smart range crops empty edge months; turn it off for January–December. Month view always exports the full current month.
 - Archive finished projects or goals in **Manage Projects & Goals** instead of deleting their history.
 
 ## Troubleshooting
@@ -69,6 +69,8 @@ Use `Ctrl+Shift+R` to force-refresh the page.
 
 ### Database safety
 
-Stop WorkLogger before copying, replacing, or restoring `data/worklogger.db`.
+Use the top-right settings button to export a user's database. The original `User` database remains at `data/worklogger.db`; additional users have isolated databases under `data/users/`.
+
+Deleting a user defaults to **Remove user, keep database**. Retained databases remain available for export or merging. Stop WorkLogger before manually copying, replacing, or restoring database files.
 
 For fuller workflows, see [USER_GUIDE_ZH.md](USER_GUIDE_ZH.md).
