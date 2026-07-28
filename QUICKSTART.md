@@ -50,7 +50,7 @@ Open **Protocols** when you need to create, copy, or maintain a reusable procedu
 ## 6. Review
 
 - Use **Reports** for weekly/monthly review and Excel/PDF export.
-- Use **Gantt** for a visual check of dated goals. It supports year and month views.
+- Use **Gantt** for a visual check of dated goals. It supports year and month views, plus high-resolution PNG export. In Year view choose all projects or a single Project; Month view always exports the full current month.
 - Archive finished projects or goals in **Manage Projects & Goals** instead of deleting their history.
 
 ## Troubleshooting

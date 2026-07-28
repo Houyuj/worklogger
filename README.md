@@ -14,7 +14,7 @@ The interface is English-first. This repository's Chinese user guide is availabl
 - Keeps Protocol content, images, results, and conclusions in one rich-text body.
 - Provides a compact **Manage Projects & Goals** tree with contextual creation, archive, restore, and safe deletion rules.
 - Provides weekly, monthly, and annual reports with Excel and PDF export; linked Protocols open in a new tab from Reports.
-- Provides a year/month Gantt view with 52- or 53-week ISO headers and synchronized goal/timeline row heights.
+- Provides a year/month Gantt view with 52- or 53-week ISO headers, synchronized goal/timeline row heights, and high-resolution PNG export.
 
 ## What it deliberately does not do
 
@@ -88,7 +88,7 @@ Open **Protocols** from the top navigation.
 ### Review and export
 
 - **Reports** supports weekly, monthly, and annual review, inline task editing, Protocol links, Excel export, and PDF export.
-- **Gantt** supports year and month views. Its bars represent dated monthly goals or weekly goals, not a hard deadline system.
+- **Gantt** supports year and month views. Its bars represent dated monthly goals or weekly goals, not a hard deadline system. Export a complete high-resolution PNG: choose all projects or one Project in year view; month view exports the full current month.
 
 ## Data and backups
 

@@ -47,6 +47,7 @@ The HTTP API and SQLite schema retain legacy `experiment` names for backwards co
 - Protocol content is a single rich-text body rather than fragmented result fields.
 - Archive preserves research history; delete protects populated planning nodes.
 - Excel is the primary editable report handoff; PDF remains for read-only sharing.
+- Gantt can export a standalone high-resolution PNG for a full year, one Project, or the full current month.
 
 ## Current version-control practice
 

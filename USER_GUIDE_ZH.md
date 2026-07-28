@@ -76,6 +76,7 @@ Gantt 用于偶尔确认月度目标的时间分布、进度和空档。
 - Year view 显示 52 或 53 个 ISO 周，不会把第 53 周折到行首。
 - Month view 侧重当前月的 Weekly Goals。
 - 左侧目标行与右侧时间条会同步高度。
+- 点击 **Export PNG** 可导出高清完整图片。年度视角可选择 All projects 或单个 Project；月度视角固定导出当前月的完整内容。
 
 ## 数据与备份
 

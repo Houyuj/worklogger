@@ -122,6 +122,48 @@
             background: var(--primary-strong);
         }
 
+        .export-controls {
+            margin-left: auto;
+        }
+
+        .export-select {
+            min-width: 190px;
+            max-width: 300px;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            color: #3d4d5c;
+            background: white;
+            font: inherit;
+        }
+
+        .export-btn {
+            padding: 9px 14px;
+            border: 0;
+            border-radius: 6px;
+            background: #0f766e;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .export-btn:hover:not(:disabled) {
+            background: #0b5e57;
+        }
+
+        .export-btn:disabled,
+        .export-select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .export-hint {
+            max-width: 220px;
+            color: #718096;
+            font-size: 0.78em;
+            line-height: 1.25;
+        }
+
         .year-selector {
             display: flex;
             align-items: center;
@@ -608,6 +650,13 @@
                     <button class="zoom-btn" onclick="zoomIn()">+</button>
                 </div>
             </div>
+
+            <div class="control-group export-controls">
+                <label for="exportProjectSelect">Export:</label>
+                <select id="exportProjectSelect" class="export-select" aria-label="Project to export"></select>
+                <button id="exportGanttButton" class="export-btn" type="button" onclick="exportGanttImage()">Export PNG</button>
+                <span id="exportHint" class="export-hint"></span>
+            </div>
         </div>
 
         <div class="gantt-card">
@@ -840,6 +889,7 @@
         let currentYear = new Date().getFullYear();
         let currentMonth = new Date().getMonth();
         let currentView = 'year';
+        let ganttProjects = [];
         const wrapper = document.getElementById('ganttWrapper');
         let selectedMonthlyGoal = null;
         let selectedProject = null;
@@ -952,10 +1002,302 @@
         async function loadGanttData() {
             try {
                 const data = await api.getGanttData(currentYear);
+                ganttProjects = data;
                 renderGanttChart(data);
+                updateGanttExportControls();
             } catch (error) {
                 console.error('Error loading Gantt data:', error);
                 showError('Failed to load Gantt chart data');
+            }
+        }
+
+        function updateGanttExportControls() {
+            const select = document.getElementById('exportProjectSelect');
+            const hint = document.getElementById('exportHint');
+            const button = document.getElementById('exportGanttButton');
+            if (!select || !hint || !button) return;
+
+            const previousValue = select.value || 'all';
+            if (currentView === 'month') {
+                select.innerHTML = '<option value="all">Full month (all projects)</option>';
+                select.value = 'all';
+                select.disabled = true;
+                hint.textContent = 'Exports the complete current month.';
+            } else {
+                select.disabled = false;
+                select.innerHTML = '<option value="all">All projects</option>' + ganttProjects.map(project =>
+                    `<option value="${project.id}">${escapeSvg(project.name)}</option>`
+                ).join('');
+                select.value = [...select.options].some(option => option.value === previousValue) ? previousValue : 'all';
+                hint.textContent = 'Choose all projects or one project for the annual export.';
+            }
+            button.disabled = ganttProjects.length === 0;
+        }
+
+        function getExportProjects() {
+            if (currentView === 'month') return ganttProjects;
+            const selectedProjectId = document.getElementById('exportProjectSelect')?.value || 'all';
+            return selectedProjectId === 'all'
+                ? ganttProjects
+                : ganttProjects.filter(project => String(project.id) === selectedProjectId);
+        }
+
+        function getExportStatusStyle(status, kind) {
+            const styles = kind === 'week'
+                ? {
+                    planned: { fill: '#dbeafe', text: '#1d4ed8' },
+                    completed: { fill: '#e2e8f0', text: '#475569' },
+                    'in-progress': { fill: '#bbf7d0', text: '#15803d' },
+                    terminated: { fill: '#fecaca', text: '#b91c1c' }
+                }
+                : {
+                    planned: { fill: '#bee3f8', text: '#2c5282' },
+                    completed: { fill: '#cbd5e0', text: '#2d3748' },
+                    'in-progress': { fill: '#9ae6b4', text: '#22543d' },
+                    terminated: { fill: '#fc8181', text: '#742a2a' }
+                };
+            return styles[status] || styles.planned;
+        }
+
+        function wrapSvgText(text, maxCharacters, maxLines = 2) {
+            const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+            if (words.length === 0) return [];
+            const lines = [];
+            let line = '';
+            words.forEach(word => {
+                const candidate = line ? `${line} ${word}` : word;
+                if (candidate.length <= maxCharacters || !line) {
+                    line = candidate;
+                } else if (lines.length < maxLines - 1) {
+                    lines.push(line);
+                    line = word;
+                }
+            });
+            if (line && lines.length < maxLines) lines.push(line);
+            if (lines.length === maxLines && words.join(' ').length > lines.join(' ').length) {
+                lines[lines.length - 1] = `${lines[lines.length - 1].slice(0, Math.max(1, maxCharacters - 1))}…`;
+            }
+            return lines;
+        }
+
+        function escapeSvg(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+        }
+
+        function renderSvgText(text, x, y, maxWidth, fontSize, color, weight = 500, maxLines = 2) {
+            const maxCharacters = Math.max(5, Math.floor(maxWidth / (fontSize * 0.56)));
+            const lines = wrapSvgText(text, maxCharacters, maxLines);
+            const lineHeight = Math.round(fontSize * 1.25);
+            return `<text x="${x}" y="${y}" fill="${color}" font-family="Segoe UI, Arial, sans-serif" font-size="${fontSize}" font-weight="${weight}">` +
+                lines.map((line, index) => `<tspan x="${x}" dy="${index === 0 ? 0 : lineHeight}">${escapeSvg(line)}</tspan>`).join('') +
+                '</text>';
+        }
+
+        function getExportBarPosition(start, end, range, timelineWidth) {
+            const visibleStart = start < range.start ? range.start : start;
+            const visibleEnd = end > range.end ? range.end : end;
+            const rangeDays = daysBetween(range.start, range.end) + 1;
+            return {
+                x: (daysBetween(range.start, visibleStart) / rangeDays) * timelineWidth,
+                width: Math.max(4, ((daysBetween(visibleStart, visibleEnd) + 1) / rangeDays) * timelineWidth)
+            };
+        }
+
+        function buildYearExportRows(projects) {
+            const rows = [];
+            projects.forEach(project => {
+                rows.push({ type: 'project', label: project.name, height: 54 });
+                (project.annual_goals || []).forEach(annualGoal => {
+                    const visibleGoals = getVisibleMonthlyGoals(annualGoal.monthly_goals || []);
+                    const lanes = assignGoalLanes(visibleGoals);
+                    const laneCount = visibleGoals.length ? Math.max(...lanes.values()) + 1 : 1;
+                    rows.push({
+                        type: 'annual',
+                        label: annualGoal.name,
+                        height: Math.max(64, laneCount * 54 + 10),
+                        bars: visibleGoals.map(goal => ({ goal, lane: lanes.get(goal.id), kind: 'month' }))
+                    });
+                });
+            });
+            return rows;
+        }
+
+        function buildMonthExportRows(projects) {
+            const rows = [];
+            projects.forEach(project => {
+                (project.annual_goals || []).forEach(annualGoal => {
+                    getVisibleMonthlyGoals(annualGoal.monthly_goals || []).forEach(monthlyGoal => {
+                        const visibleGoals = getVisibleWeeklyGoals(monthlyGoal.weekly_goals || []);
+                        const lanes = assignGoalLanes(visibleGoals);
+                        const laneCount = visibleGoals.length ? Math.max(...lanes.values()) + 1 : 1;
+                        rows.push({
+                            type: 'monthly',
+                            label: `${project.name} · ${annualGoal.name} · ${monthlyGoal.name}`,
+                            height: Math.max(58, laneCount * 48 + 10),
+                            bars: visibleGoals.map(goal => ({ goal, lane: lanes.get(goal.id), kind: 'week' }))
+                        });
+                    });
+                });
+            });
+            return rows;
+        }
+
+        function buildGanttExportSvg() {
+            const projects = getExportProjects();
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'];
+            const isMonthView = currentView === 'month';
+            const leftWidth = isMonthView ? 650 : 470;
+            const timelineWidth = isMonthView ? 2400 : 2600;
+            const headerHeight = 86;
+            const bodyStart = 130;
+            const rows = isMonthView ? buildMonthExportRows(projects) : buildYearExportRows(projects);
+            const bodyHeight = Math.max(72, rows.reduce((sum, row) => sum + row.height, 0));
+            const width = leftWidth + timelineWidth;
+            const height = bodyStart + bodyHeight + 64;
+            const range = getTimelineRange();
+            const scope = isMonthView
+                ? `${monthNames[currentMonth]} ${currentYear} · All projects`
+                : projects.length === 1
+                    ? `${currentYear} · ${projects[0].name}`
+                    : `${currentYear} · All projects`;
+            const svg = [
+                `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">`,
+                '<rect width="100%" height="100%" fill="#f4f6f5"/>',
+                `<text x="28" y="37" fill="#27383d" font-family="Segoe UI, Arial, sans-serif" font-size="27" font-weight="700">WorkLogger Gantt</text>`,
+                `<text x="28" y="64" fill="#64757a" font-family="Segoe UI, Arial, sans-serif" font-size="16">${escapeSvg(scope)}</text>`,
+                `<rect x="0" y="${headerHeight}" width="${leftWidth}" height="44" fill="#ffffff" stroke="#d7e1de"/>`,
+                `<text x="20" y="${headerHeight + 28}" fill="#3d4d5c" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">${escapeSvg(isMonthView ? 'Monthly Goals' : 'Projects & Goals')}</text>`,
+                `<rect x="${leftWidth}" y="${headerHeight}" width="${timelineWidth}" height="44" fill="#ffffff" stroke="#d7e1de"/>`
+            ];
+
+            if (isMonthView) {
+                const dayCount = new Date(currentYear, currentMonth + 1, 0).getDate();
+                svg.push(renderSvgText(`${monthNames[currentMonth]} ${currentYear}`, leftWidth + 18, headerHeight + 23, timelineWidth - 36, 17, '#58728f', 700, 1));
+                for (let index = 0; index < dayCount; index++) {
+                    const x = leftWidth + (timelineWidth * index / dayCount);
+                    svg.push(`<line x1="${x}" y1="${headerHeight + 44}" x2="${x}" y2="${bodyStart + bodyHeight}" stroke="#edf2f0"/>`);
+                    svg.push(`<text x="${x + timelineWidth / dayCount / 2}" y="${headerHeight + 70}" text-anchor="middle" fill="#718096" font-family="Segoe UI, Arial, sans-serif" font-size="11">${index + 1}</text>`);
+                }
+            } else {
+                const weekCount = getIsoWeeksInYear(currentYear);
+                monthNames.forEach((monthName, index) => {
+                    const x = leftWidth + (timelineWidth * index / 12);
+                    const monthWidth = timelineWidth / 12;
+                    svg.push(`<line x1="${x}" y1="${headerHeight}" x2="${x}" y2="${bodyStart + bodyHeight}" stroke="#d7e1de"/>`);
+                    svg.push(`<text x="${x + monthWidth / 2}" y="${headerHeight + 24}" text-anchor="middle" fill="#58728f" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">${monthName}</text>`);
+                });
+                for (let index = 0; index < weekCount; index++) {
+                    const x = leftWidth + (timelineWidth * (index + 0.5) / weekCount);
+                    svg.push(`<text x="${x}" y="${headerHeight + 70}" text-anchor="middle" fill="#718096" font-family="Segoe UI, Arial, sans-serif" font-size="10">${index + 1}</text>`);
+                }
+            }
+
+            let y = bodyStart;
+            rows.forEach(row => {
+                const rowBackground = row.type === 'project' ? '#f1f5f4' : '#ffffff';
+                svg.push(`<rect x="0" y="${y}" width="${leftWidth}" height="${row.height}" fill="${rowBackground}" stroke="#e5ece9"/>`);
+                svg.push(`<rect x="${leftWidth}" y="${y}" width="${timelineWidth}" height="${row.height}" fill="#ffffff" stroke="#e5ece9"/>`);
+                if (row.type === 'project') {
+                    svg.push(`<rect x="0" y="${y}" width="6" height="${row.height}" fill="#f59e0b"/>`);
+                    svg.push(renderSvgText(row.label, 22, y + 32, leftWidth - 42, 17, '#27383d', 700, 1));
+                } else {
+                    svg.push(renderSvgText(row.label, 22, y + 29, leftWidth - 42, 14, '#40515d', 600, 2));
+                    if (!row.bars || row.bars.length === 0) {
+                        svg.push(`<rect x="${leftWidth + 10}" y="${y + 12}" width="${timelineWidth - 20}" height="${Math.max(28, row.height - 24)}" rx="5" fill="#fff7f7" stroke="#f0a3a3" stroke-dasharray="6 5"/>`);
+                        svg.push(`<text x="${leftWidth + 24}" y="${y + 34}" fill="#a34d4d" font-family="Segoe UI, Arial, sans-serif" font-size="12">No dated goals in this period</text>`);
+                    } else {
+                        row.bars.forEach(({ goal, lane, kind }) => {
+                            const goalRange = kind === 'week'
+                                ? getWeeklyTaskRange(goal)
+                                : { start: parseGoalDate(goal.start_date), end: parseGoalDate(goal.end_date) };
+                            const position = getExportBarPosition(goalRange.start, goalRange.end, range, timelineWidth);
+                            const barHeight = kind === 'week' ? 36 : 40;
+                            const laneHeight = kind === 'week' ? 48 : 54;
+                            const barY = y + 6 + lane * laneHeight;
+                            const style = getExportStatusStyle(goal.status, kind);
+                            svg.push(`<rect x="${leftWidth + position.x}" y="${barY}" width="${position.width}" height="${barHeight}" rx="5" fill="${style.fill}" ${kind === 'week' ? `stroke="${style.text}" stroke-width="3"` : ''}/>`);
+                            if (position.width > 62) {
+                                svg.push(renderSvgText(goal.name, leftWidth + position.x + 8, barY + 17, position.width - 14, 11, style.text, 700, 2));
+                            }
+                        });
+                    }
+                }
+                y += row.height;
+            });
+
+            svg.push(`<text x="28" y="${height - 23}" fill="#718096" font-family="Segoe UI, Arial, sans-serif" font-size="12">Exported from WorkLogger · ${new Date().toLocaleString()}</text>`);
+            svg.push('</svg>');
+            return { svg: svg.join(''), width, height, scope };
+        }
+
+        function svgToPng(svg, width, height) {
+            return new Promise((resolve, reject) => {
+                const scale = Math.min(2, 16384 / Math.max(width, height));
+                const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+                const imageUrl = URL.createObjectURL(svgBlob);
+                const image = new Image();
+                image.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(width * scale);
+                        canvas.height = Math.round(height * scale);
+                        const context = canvas.getContext('2d');
+                        context.fillStyle = '#f4f6f5';
+                        context.fillRect(0, 0, canvas.width, canvas.height);
+                        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob(blob => {
+                            URL.revokeObjectURL(imageUrl);
+                            if (blob) resolve(blob);
+                            else reject(new Error('Could not create PNG data.'));
+                        }, 'image/png');
+                    } catch (error) {
+                        URL.revokeObjectURL(imageUrl);
+                        reject(error);
+                    }
+                };
+                image.onerror = () => {
+                    URL.revokeObjectURL(imageUrl);
+                    reject(new Error('Could not render the Gantt image.'));
+                };
+                image.src = imageUrl;
+            });
+        }
+
+        async function exportGanttImage() {
+            if (ganttProjects.length === 0) {
+                showError('There is no Gantt data to export.');
+                return;
+            }
+            const button = document.getElementById('exportGanttButton');
+            button.disabled = true;
+            const originalLabel = button.textContent;
+            button.textContent = 'Rendering PNG…';
+            try {
+                const { svg, width, height, scope } = buildGanttExportSvg();
+                const pngBlob = await svgToPng(svg, width, height);
+                const monthPart = String(currentMonth + 1).padStart(2, '0');
+                const selectedProject = document.getElementById('exportProjectSelect')?.value || 'all';
+                const scopePart = currentView === 'month' ? `month-${monthPart}-all-projects` : selectedProject === 'all' ? 'all-projects' : `project-${selectedProject}`;
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(pngBlob);
+                link.download = `worklogger-gantt-${currentYear}-${scopePart}.png`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+                showSuccess(`High-resolution Gantt exported: ${scope}.`);
+            } catch (error) {
+                console.error('Failed to export Gantt image:', error);
+                showError('Failed to export Gantt PNG: ' + (error.message || 'Unknown error'));
+            } finally {
+                button.disabled = false;
+                button.textContent = originalLabel;
             }
         }
 

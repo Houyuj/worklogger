@@ -48,6 +48,7 @@ WorkLogger is a local, desktop-first personal research manager. The product is o
 - Overlapping bars receive separate lanes.
 - Dynamic 52/53-week ISO year header.
 - Timeline header, left labels, and paired goal rows are height-synchronized.
+- High-resolution PNG export: all projects or one Project in Year view; full current month in Month view.
 
 ### Runtime and data
 

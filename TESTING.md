@@ -49,6 +49,8 @@ Run this checklist before committing a feature that changes the local app. Use d
 - [ ] A 53-week year places `53` at the end of the week row, never underneath Week 1.
 - [ ] Project and Annual Goal rows on the left match the corresponding timeline heights on the right.
 - [ ] Month view renders dated Weekly Goals and handles overlap lanes.
+- [ ] Year view Export PNG offers All projects and individual Project choices; both downloads include complete, unscrolled content.
+- [ ] Month view Export PNG is locked to Full month (all projects) and downloads a complete current-month image.
 
 ## Technical smoke checks
 
